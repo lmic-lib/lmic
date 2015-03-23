@@ -353,7 +353,7 @@ void hal_init () {
     hal_enableIRQs();
 }
 
-void hal_failed () {
+void hal_failed (const char * /* file */, u2_t /* line */);
     // HALT...
     hal_disableIRQs();
     hal_sleep();
