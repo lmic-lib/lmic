@@ -28,6 +28,10 @@
 #ifndef _lorabase_h_
 #define _lorabase_h_
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 // ================================================================================
 // BEG: Keep in sync with lorabase.hpp
 //
@@ -396,5 +400,8 @@ ostime_t calcAirTime (rps_t rps, u1_t plen);
 // Sensitivity at given SF/BW
 int getSensitivity (rps_t rps);
 
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif // _lorabase_h_

@@ -34,6 +34,10 @@
 #include "oslmic.h"
 #include "lorabase.h"
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 // LMIC version
 #define LMIC_VERSION_MAJOR 1
 #define LMIC_VERSION_MINOR 6
@@ -284,5 +288,9 @@ void LMIC_setLinkCheckMode (bit_t enabled);
 
 // Special APIs - for development or testing
 // !!!See implementation for caveats!!!
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif // _lmic_h_
