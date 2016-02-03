@@ -59,7 +59,6 @@
 #define isTESTMODE() 0
 
 DEFINE_LMIC;
-DECL_ON_LMIC_EVENT;
 
 
 // Fwd decls.
