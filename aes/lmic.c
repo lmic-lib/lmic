@@ -25,9 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if defined(USE_ORIGINAL_AES)
+#include "../lmic/oslmic.h"
 
-#include "oslmic.h"
+#if defined(USE_ORIGINAL_AES)
 
 #define AES_MICSUB 0x30 // internal use only
 
