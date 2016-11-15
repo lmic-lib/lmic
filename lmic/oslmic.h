@@ -34,7 +34,14 @@
 // You should not, however, change the lmic.[hc]
 
 #include <stdint.h>
+#ifdef ARDUINO
+// When using the makefile, the target directory is put into the include
+// path, so we can include target-config.h directly. When using Arduino,
+// this is not the case, so we have to specify the path explicitly.
+#include "../hal/target-config.h"
+#else
 #include <target-config.h>
+#endif
 
 #ifdef __cplusplus
 extern "C"{
