@@ -11,13 +11,13 @@ BIN = ${GNU}arm-none-eabi-objcopy -O binary
 OPENOCD := openocd
 
 LMICDIR  = ../../lmic
-HALDIR   = ../../target/stm32
+TARGETDIR  = ../../target/stm32
 TOOLSDIR   = ../../tools
 BUILDDIR = build
 
-LINKER_SCRIPT :=  $(HALDIR)/STM32L152VB_FLASH.ld
+LINKER_SCRIPT :=  $(TARGETDIR)/STM32L152VB_FLASH.ld
 
-CMSIS_INC = $(HALDIR)/CMSIS/Include
+CMSIS_INC = $(TARGETDIR)/CMSIS/Include
 define CMSIS_MSG
 ERROR: CMSIS Library missing: $(CMSIS_INC)
 ## CMSIS: Cortex Microcontroller Software Interface Standard
@@ -41,13 +41,13 @@ ASOPTS += -I$(CMSIS_INC)
 LMICCFG += -DSTM32L1XX_MD -DCFG_DEBUG -DCFG_eu868 -DCFG_wimod_board -DCFG_sx1272_radio -DCFG_lmic_clib
 
 # RULES
-SRCS = $(notdir $(wildcard ${LMICDIR}/*.c ${HALDIR}/*.c ${HALDIR}/*.s *.c))
+SRCS = $(notdir $(wildcard ${LMICDIR}/*.c ${TARGETDIR}/*.c ${TARGETDIR}/*.s *.c))
 OBJS = $(patsubst %, ${BUILDDIR}/%.o, $(basename ${SRCS}))
 
-VPATH = ${LMICDIR} ${HALDIR} .
+VPATH = ${LMICDIR} ${TARGETDIR} .
 
 ${BUILDDIR}/%.o: %.c | ${BUILDDIR}
-	${CC} ${CCOPTS} ${LMICCFG} -I${LMICDIR} -I${HALDIR} $< -o$@
+	${CC} ${CCOPTS} ${LMICCFG} -I${LMICDIR} -I${TARGETDIR} $< -o$@
 
 ${BUILDDIR}/%.o: %.s | ${BUILDDIR}
 	${AS} ${ASOPTS} $< -o $@
