@@ -33,7 +33,7 @@
 // These settings can be adapted to the underlying system.
 // You should not, however, change the lmic.[hc]
 
-
+#include <target-config.h>
 
 //================================================================================
 //================================================================================
@@ -108,9 +108,7 @@ void os_runloop (void);
 #define TX_RAMPUP  (us2osticks(2000))
 #endif
 
-#ifndef OSTICKS_PER_SEC
-#define OSTICKS_PER_SEC 32768
-#elif OSTICKS_PER_SEC < 10000 || OSTICKS_PER_SEC > 64516
+#if OSTICKS_PER_SEC < 10000 || OSTICKS_PER_SEC > 64516
 #error Illegal OSTICKS_PER_SEC - must be in range [10000:64516]. One tick must be 15.5us .. 100us long.
 #endif
 
