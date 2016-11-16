@@ -11,7 +11,7 @@ BIN = ${GNU}arm-none-eabi-objcopy -O binary
 OPENOCD := openocd
 
 LMICDIR  = ../../lmic
-HALDIR   = ../../stm32
+HALDIR   = ../../target/stm32
 TOOLSDIR   = ../../tools
 BUILDDIR = build
 
