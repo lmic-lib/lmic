@@ -552,8 +552,8 @@ void LMIC_setPingable (u1_t intvExp) {
 //
 enum { NUM_DEFAULT_CHANNELS=3 };
 static CONST_TABLE(u4_t, iniChannelFreq)[6] = {
-    // Join frequencies and duty cycle limit (0.1%)
-    EU868_F1|BAND_MILLI, EU868_F2|BAND_MILLI, EU868_F3|BAND_MILLI,
+    // Join frequencies and duty cycle limit (1%)
+    EU868_F1|BAND_CENTI, EU868_F2|BAND_CENTI, EU868_F3|BAND_CENTI,
     // Default operational frequencies
     EU868_F1|BAND_CENTI, EU868_F2|BAND_CENTI, EU868_F3|BAND_CENTI,
 };
