@@ -1215,8 +1215,8 @@ static bit_t decodeFrame (void) {
             LMIC.globalDutyAvail = os_getTime();
             DO_DEVDB(cap,dutyCap);
             LMIC.dutyCapAns = 1;
-            oidx += 2;
 #endif // !DISABLE_MCMD_DCAP_REQ
+            oidx += 2;
             continue;
         }
         case MCMD_SNCH_REQ: {
