@@ -601,7 +601,7 @@ bit_t LMIC_setupChannel (u1_t chidx, u4_t freq, u2_t drmap, s1_t band) {
     if( band == -1 ) {
         if( freq >= 869400000 && freq <= 869650000 )
             freq |= BAND_DECI;   // 10% 27dBm
-        else if( (freq >= 868000000 && freq <= 868600000) ||
+        else if( (freq >= 865000000 && freq <= 868600000) ||
                  (freq >= 869700000 && freq <= 870000000)  )
             freq |= BAND_CENTI;  // 1% 14dBm
         else
