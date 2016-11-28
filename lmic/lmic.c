@@ -1147,6 +1147,10 @@ static bit_t decodeFrame (void) {
         case MCMD_LCHK_ANS: {
             //int gwmargin = opts[oidx+1];
             //int ngws = opts[oidx+2];
+            LMIC.LinkCheckMargin = opts[oidx+1];
+            LMIC.LinkCheckGwCnt = opts[oidx+2];
+            LMIC.LinkCheckReq = 0;
+            LMIC.LinkCheckAns = 1;
             oidx += 3;
             continue;
         }
@@ -1661,6 +1665,11 @@ static void buildDataFrame (void) {
         LMIC.frame[end+1] = LMIC.ladrAns & ~MCMD_LADR_ANS_RFU;
         end += 2;
         LMIC.ladrAns = 0;
+    }
+    if( LMIC.LinkCheckReq ) {  //Link Check Request
+        LMIC.frame[end+0] = MCMD_LCHK_REQ;
+        end += 1;
+        LMIC.LinkCheckAns = 0;
     }
 #if !defined(DISABLE_BEACONS)
     if( LMIC.bcninfoTries > 0 ) {
