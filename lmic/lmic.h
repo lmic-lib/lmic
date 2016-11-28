@@ -235,6 +235,10 @@ struct lmic_t {
     u1_t        margin;
     bit_t       ladrAns;      // link adr adapt answer pending
     bit_t       devsAns;      // device status answer pending
+    u1_t        LinkCheckReq; // send LinkCheckReq command
+    u1_t        LinkCheckAns; // LinkCheckAns received
+    u1_t        LinkCheckMargin;  // link margin in dB of the last successfully received LinkCheckReq 
+    u1_t        LinkCheckGwCnt;   // number of gateways that successfully received the last LinkCheckReq 
     u1_t        adrEnabled;
     u1_t        moreData;     // NWK has more data pending
 #if !defined(DISABLE_MCMD_DCAP_REQ)

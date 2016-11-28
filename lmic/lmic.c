@@ -552,8 +552,8 @@ void LMIC_setPingable (u1_t intvExp) {
 //
 enum { NUM_DEFAULT_CHANNELS=3 };
 static CONST_TABLE(u4_t, iniChannelFreq)[6] = {
-    // Join frequencies and duty cycle limit (0.1%)
-    EU868_F1|BAND_MILLI, EU868_F2|BAND_MILLI, EU868_F3|BAND_MILLI,
+    // Join frequencies and duty cycle limit (1%)
+    EU868_F1|BAND_CENTI, EU868_F2|BAND_CENTI, EU868_F3|BAND_CENTI,
     // Default operational frequencies
     EU868_F1|BAND_CENTI, EU868_F2|BAND_CENTI, EU868_F3|BAND_CENTI,
 };
@@ -601,7 +601,7 @@ bit_t LMIC_setupChannel (u1_t chidx, u4_t freq, u2_t drmap, s1_t band) {
     if( band == -1 ) {
         if( freq >= 869400000 && freq <= 869650000 )
             freq |= BAND_DECI;   // 10% 27dBm
-        else if( (freq >= 868000000 && freq <= 868600000) ||
+        else if( (freq >= 865000000 && freq <= 868600000) ||
                  (freq >= 869700000 && freq <= 870000000)  )
             freq |= BAND_CENTI;  // 1% 14dBm
         else
@@ -1147,6 +1147,10 @@ static bit_t decodeFrame (void) {
         case MCMD_LCHK_ANS: {
             //int gwmargin = opts[oidx+1];
             //int ngws = opts[oidx+2];
+            LMIC.LinkCheckMargin = opts[oidx+1];
+            LMIC.LinkCheckGwCnt = opts[oidx+2];
+            LMIC.LinkCheckReq = 0;
+            LMIC.LinkCheckAns = 1;
             oidx += 3;
             continue;
         }
@@ -1211,8 +1215,8 @@ static bit_t decodeFrame (void) {
             LMIC.globalDutyAvail = os_getTime();
             DO_DEVDB(cap,dutyCap);
             LMIC.dutyCapAns = 1;
-            oidx += 2;
 #endif // !DISABLE_MCMD_DCAP_REQ
+            oidx += 2;
             continue;
         }
         case MCMD_SNCH_REQ: {
@@ -1661,6 +1665,11 @@ static void buildDataFrame (void) {
         LMIC.frame[end+1] = LMIC.ladrAns & ~MCMD_LADR_ANS_RFU;
         end += 2;
         LMIC.ladrAns = 0;
+    }
+    if( LMIC.LinkCheckReq ) {  //Link Check Request
+        LMIC.frame[end+0] = MCMD_LCHK_REQ;
+        end += 1;
+        LMIC.LinkCheckAns = 0;
     }
 #if !defined(DISABLE_BEACONS)
     if( LMIC.bcninfoTries > 0 ) {
