@@ -36,6 +36,15 @@ if ! [ -d "$(dirname "$TARGET")" ]; then
 	exit 1
 fi
 
+
+if [ -e "$TARGET" ]; then
+	echo -n "$TARGET exists, remove before export? [yN]"
+	read answer
+	if [ "$answer" = "y" ]; then
+		rm -rf "$TARGET"
+	fi
+fi
+
 mkdir -p "$TARGET"/src
 
 $CMD "$SRC"/library.properties "$TARGET"
