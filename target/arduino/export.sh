@@ -8,14 +8,14 @@ usage() {
 }
 
 
-CPOPTS=
+CMD="cp -r -v"
 case "$1" in
 	--help)
 		usage
 		exit 0
 	;;
 	--link)
-		CPOPTS=--symbolic-link
+		CMD="ln -s -v"
 		shift;
 	;;
 	--*)
@@ -37,9 +37,10 @@ if ! [ -d "$(dirname "$TARGET")" ]; then
 fi
 
 mkdir -p "$TARGET"/src
-cp $CPOPTS -f -v "$SRC"/library.properties "$TARGET"
-cp $CPOPTS -f -v "$SRC"/lmic.h "$TARGET"/src
-cp $CPOPTS -r -f -v "$SRC"/../../lmic "$TARGET"/src
-cp $CPOPTS -r -f -v "$SRC"/../../aes "$TARGET"/src
-cp $CPOPTS -r -f -v "$SRC"/hal "$TARGET"/src
-cp $CPOPTS -r -f -v "$SRC"/examples "$TARGET"
+
+$CMD "$SRC"/library.properties "$TARGET"
+$CMD "$SRC"/lmic.h "$TARGET"/src
+$CMD "$SRC"/../../lmic "$TARGET"/src
+$CMD "$SRC"/../../aes "$TARGET"/src
+$CMD "$SRC"/hal "$TARGET"/src
+$CMD "$SRC"/examples "$TARGET"
