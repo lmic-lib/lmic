@@ -8,6 +8,16 @@ usage() {
 }
 
 
+# This recursively copies $1 (file or directory) into $2 (directory)
+# This is essentially cp --symbolic-link, but POSIX-compatible.
+create_links() {
+	local TARGET=$(cd "$2" && pwd)
+	local SRCDIR=$(cd "$(dirname "$1")" && pwd)
+	local SRCNAME=$(basename "$1")
+	(cd "$SRCDIR" && find "$SRCNAME" -type d -exec mkdir -p "$TARGET/{}" \; -o -exec ln -s -v "$SRCDIR/{}" "$TARGET/{}" \; )
+}
+
+
 CMD="cp -r -v"
 case "$1" in
 	--help)
@@ -15,7 +25,7 @@ case "$1" in
 		exit 0
 	;;
 	--link)
-		CMD="ln -s -v"
+		CMD="create_links"
 		shift;
 	;;
 	--*)
@@ -47,9 +57,12 @@ fi
 
 mkdir -p "$TARGET"/src
 
+# This copies or links the relevant directories. For the hal and lmic
+# directories, the contained files are copied or linked, so that when
+# linking relative includes still work as expected
 $CMD "$SRC"/library.properties "$TARGET"
 $CMD "$SRC"/lmic.h "$TARGET"/src
 $CMD "$SRC"/../../lmic "$TARGET"/src
-$CMD "$SRC"/../../aes "$TARGET"/src
 $CMD "$SRC"/hal "$TARGET"/src
+$CMD "$SRC"/../../aes "$TARGET"/src
 $CMD "$SRC"/examples "$TARGET"
