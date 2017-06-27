@@ -27,6 +27,7 @@
 
 //! \file
 #include "lmic.h"
+#include <stdio.h>
 
 #if defined(DISABLE_BEACONS) && !defined(DISABLE_PING)
 #error Ping needs beacon tracking
@@ -1051,7 +1052,7 @@ static bit_t decodeFrame (void) {
                             e_.info2  = hdr + (dlen<<8)));
       norx:
 #if LMIC_DEBUG_LEVEL > 0
-        printf("%lu: Invalid downlink, window=%s\n", os_getTime(), window);
+        lmic_printf("%lu: Invalid downlink, window=%s\n", os_getTime(), window);
 #endif
         LMIC.dataLen = 0;
         return 0;
@@ -1334,7 +1335,7 @@ static bit_t decodeFrame (void) {
         LMIC.dataLen = pend-poff;
     }
 #if LMIC_DEBUG_LEVEL > 0
-    printf("%lu: Received downlink, window=%s, port=%d, ack=%d\n", os_getTime(), window, port, ackup);
+    lmic_printf("%lu: Received downlink, window=%s, port=%d, ack=%d\n", os_getTime(), window, port, ackup);
 #endif
     return 1;
 }
@@ -1503,7 +1504,7 @@ static bit_t processJoinAccept (void) {
             if( freq ) {
                 LMIC_setupChannel(chidx, freq, 0, -1);
 #if LMIC_DEBUG_LEVEL > 1
-                printf("%lu: Setup channel, idx=%d, freq=%lu\n", os_getTime(), chidx, (unsigned long)freq);
+                lmic_printf("%lu: Setup channel, idx=%d, freq=%lu\n", os_getTime(), chidx, (unsigned long)freq);
 #endif
             }
         }
@@ -2061,7 +2062,7 @@ static void startRxPing (xref2osjob_t osjob) {
 // Decide what to do next for the MAC layer of a device
 static void engineUpdate (void) {
 #if LMIC_DEBUG_LEVEL > 0
-    printf("%lu: engineUpdate, opmode=0x%x\n", os_getTime(), LMIC.opmode);
+    lmic_printf("%lu: engineUpdate, opmode=0x%x\n", os_getTime(), LMIC.opmode);
 #endif
     // Check for ongoing state: scan or TX/RX transaction
     if( (LMIC.opmode & (OP_SCAN|OP_TXRXPEND|OP_SHUTDOWN)) != 0 )

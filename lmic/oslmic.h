@@ -266,6 +266,8 @@ u2_t os_crc16 (xref2u1_t d, uint len);
 
     // For AVR, store constants in PROGMEM, saving on RAM usage
     #define CONST_TABLE(type, name) const type PROGMEM RESOLVE_TABLE(name)
+
+    #define lmic_printf(fmt, ...) printf_P(PSTR(fmt), ## __VA_ARGS__)
 #else
     inline u1_t table_get_u1(const u1_t *table, size_t index) { return table[index]; }
     inline s1_t table_get_s1(const s1_t *table, size_t index) { return table[index]; }
@@ -277,6 +279,7 @@ u2_t os_crc16 (xref2u1_t d, uint len);
 
     // Declare a table
     #define CONST_TABLE(type, name) const type RESOLVE_TABLE(name)
+    #define lmic_printf printf
 #endif
 
 // ======================================================================
