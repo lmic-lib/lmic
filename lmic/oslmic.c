@@ -26,6 +26,7 @@
  */
 
 #include "lmic.h"
+#include <stdio.h>
 
 // RUNTIME STATE
 static struct {
@@ -58,8 +59,14 @@ static int unlinkjob (osjob_t** pnext, osjob_t* job) {
 // clear scheduled job
 void os_clearCallback (osjob_t* job) {
     hal_disableIRQs();
-    unlinkjob(&OS.scheduledjobs, job) || unlinkjob(&OS.runnablejobs, job);
+    u1_t res = unlinkjob(&OS.scheduledjobs, job) || unlinkjob(&OS.runnablejobs, job);
     hal_enableIRQs();
+    #if LMIC_DEBUG_LEVEL > 1
+        if (res)
+            lmic_printf("%lu: Cleared job %p\n", os_getTime(), job);
+    #else
+        (void)res; // Prevent unused variable warning
+    #endif
 }
 
 // schedule immediately runnable job
@@ -75,6 +82,9 @@ void os_setCallback (osjob_t* job, osjobcb_t cb) {
     for(pnext=&OS.runnablejobs; *pnext; pnext=&((*pnext)->next));
     *pnext = job;
     hal_enableIRQs();
+    #if LMIC_DEBUG_LEVEL > 1
+        lmic_printf("%lu: Scheduled job %p, cb %p ASAP\n", os_getTime(), job, cb);
+    #endif
 }
 
 // schedule timed job
@@ -97,6 +107,9 @@ void os_setTimedCallback (osjob_t* job, ostime_t time, osjobcb_t cb) {
     }
     *pnext = job;
     hal_enableIRQs();
+    #if LMIC_DEBUG_LEVEL > 1
+        lmic_printf("%lu: Scheduled job %p, cb %p at %lu\n", os_getTime(), job, cb, time);
+    #endif
 }
 
 // execute jobs from timer and from run queue
@@ -108,6 +121,7 @@ void os_runloop () {
 
 void os_runloop_once() {
     osjob_t* j = NULL;
+    ostime_t deadline = 0;
     hal_disableIRQs();
     // check for runnable jobs
     if(OS.runnablejobs) {
@@ -115,12 +129,18 @@ void os_runloop_once() {
         OS.runnablejobs = j->next;
     } else if(OS.scheduledjobs && hal_checkTimer(OS.scheduledjobs->deadline)) { // check for expired timed jobs
         j = OS.scheduledjobs;
+        deadline = j->deadline;
         OS.scheduledjobs = j->next;
     } else { // nothing pending
         hal_sleep(); // wake by irq (timer already restarted)
     }
     hal_enableIRQs();
     if(j) { // run job callback
+        #if LMIC_DEBUG_LEVEL > 1
+            lmic_printf("%lu: Running job %p, cb %p, deadline %lu\n", os_getTime(), j, j->func, deadline);
+        #else
+            (void)deadline; // Prevent unused variable warning
+        #endif
         j->func(j);
     }
 }
