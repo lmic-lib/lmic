@@ -163,9 +163,6 @@ void os_clearCallback (osjob_t *job);
 #ifndef os_getTime
 ostime_t os_getTime (void);
 #endif
-#ifndef os_getTimeSecs
-uint os_getTimeSecs (void);
-#endif
 #ifndef os_radio
 void os_radio (u1_t mode);
 #endif
