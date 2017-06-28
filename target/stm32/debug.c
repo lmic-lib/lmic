@@ -59,12 +59,12 @@ void debug_char (char c) {
     USART1->DR = c;
 }
 
-void debug_hex (u1_t b) {
+void debug_hex (uint8_t b) {
     debug_char("0123456789ABCDEF"[b>>4]);
     debug_char("0123456789ABCDEF"[b&0xF]);
 }
 
-void debug_buf (const u1_t* buf, int len) {
+void debug_buf (const uint8_t* buf, int len) {
     while(len--) {
         debug_hex(*buf++);
         debug_char(' ');
@@ -73,13 +73,13 @@ void debug_buf (const u1_t* buf, int len) {
     debug_char('\n');
 }
 
-void debug_uint (u4_t v) {
-    for(s1_t n=24; n>=0; n-=8) {
+void debug_uint (uint32_t v) {
+    for(int8_t n=24; n>=0; n-=8) {
         debug_hex(v>>n);
     }
 }
 
-void debug_int (s4_t v) {
+void debug_int (int32_t v) {
     char buf[10], *p = buf;
     int n = debug_fmt(buf, sizeof(buf), v, 10, 0, 0);
     while(n--)
@@ -92,23 +92,23 @@ void debug_str (const char* str) {
     }
 }
 
-void debug_val (const char* label, u4_t val) {
+void debug_val (const char* label, uint32_t val) {
     debug_str(label);
     debug_uint(val);
     debug_char('\r');
     debug_char('\n');
 }
 
-void debug_valdec (const char* label, s4_t val) {
+void debug_valdec (const char* label, int32_t val) {
     debug_str(label);
     debug_int(val);
     debug_char('\r');
     debug_char('\n');
 }
 
-int debug_fmt (char* buf, int max, s4_t val, int base, int width, char pad) {
+int debug_fmt (char* buf, int max, int32_t val, int base, int width, char pad) {
     char num[33], *p = num, *b = buf;
-    u4_t m, v;
+    uint32_t m, v;
     // special handling of negative decimals
     v = (base == 10 && val < 0) ? -val : val;
     // generate digits backwards

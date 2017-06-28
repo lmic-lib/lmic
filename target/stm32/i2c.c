@@ -82,7 +82,7 @@
 #define I2C_DEFAULT_TRISE (((I2C_APB1_FREQ * 3) / 10) + 1 )
 // #define I2C_DEFAULT_TRISE (I2C_APB1_FREQ + 1)  // standard speed
 
-static u1_t i2c_isBusy () {
+static uint8_t i2c_isBusy () {
     // wait for bus to be free for max 20ms
     ostime_t timeout = os_getTime() + ms2osticks(20);
     while ((I2Cx->SR2 & I2C_SR2_BUSY) && os_getTime() < timeout); // wait...
@@ -95,10 +95,10 @@ static u1_t i2c_isBusy () {
 }
 
 // the addr has to be left aligned, with the read (aka not-write) bit set
-static s1_t i2c_send_start (u1_t addr) {
+static int8_t i2c_send_start (uint8_t addr) {
     I2Cx->CR1 |= I2C_CR1_START;        // send start condition
 
-    u1_t timeout = 0xff;
+    uint8_t timeout = 0xff;
     while(!(I2Cx->SR1 & I2C_SR1_SB) && timeout-- > 0); // wait for SB (start bit / start condition generated)
     if (timeout == 0) return -1;
 
@@ -115,7 +115,7 @@ static s1_t i2c_send_start (u1_t addr) {
     return 0;
 }
 
-static s1_t i2c_restart_write (u1_t addr){
+static int8_t i2c_restart_write (uint8_t addr){
     if (i2c_send_start(addr) != 0)
         return -1;
     // check that the start was ACKed
@@ -129,7 +129,7 @@ static s1_t i2c_restart_write (u1_t addr){
     return 0;
 }
 
-static s1_t i2c_restart_read (u1_t addr) {
+static int8_t i2c_restart_read (uint8_t addr) {
     if (i2c_send_start(addr | 1) != 0)
         return -1;
     // check that the start was ACKed
@@ -143,7 +143,7 @@ static s1_t i2c_restart_read (u1_t addr) {
     return 0;
 }
 
-u1_t i2c_init (void) {
+uint8_t i2c_init (void) {
     // setup the PB10 and PB11 pins as OC outputs
     // enable power to GPIOs
     RCC->AHBENR    |= RCC_AHBENR_GPIOBEN;
@@ -219,8 +219,8 @@ u1_t i2c_init (void) {
     return 0;
 }
 
-s1_t i2c_xfer (u1_t addr, u1_t* data, u1_t wlen, u1_t rlen) {
-    s1_t errc = 0;
+int8_t i2c_xfer (uint8_t addr, uint8_t* data, uint8_t wlen, uint8_t rlen) {
+    int8_t errc = 0;
     hal_disableIRQs();
 
     // check that the bus is not stuck a previous transaction
@@ -233,7 +233,7 @@ s1_t i2c_xfer (u1_t addr, u1_t* data, u1_t wlen, u1_t rlen) {
         if ( (errc = i2c_restart_write(addr)) != 0)
             goto finish;
 
-        for (u1_t i = 0; i < wlen; i++) {
+        for (uint8_t i = 0; i < wlen; i++) {
             I2Cx->DR = data[i] & I2C_DR_DR;
             while(!(I2Cx->SR1 & I2C_SR1_BTF) && !(I2Cx->SR1 & I2C_SR1_TXE));
             if (I2Cx->SR1 & I2C_SR1_AF) { // no ACK
@@ -251,14 +251,14 @@ s1_t i2c_xfer (u1_t addr, u1_t* data, u1_t wlen, u1_t rlen) {
         if ( (errc=i2c_restart_read(addr)) != 0)
             goto finish;
 
-        for (u1_t i = 0; i < rlen; i++){
+        for (uint8_t i = 0; i < rlen; i++){
             // we always ACK the received data, except last byte
             if ( i == (rlen-1))
                 I2Cx->CR1 &= ~I2C_CR1_ACK;
             else
                 I2Cx->CR1 |= I2C_CR1_ACK;
 
-            u2_t counter = 0;
+            uint16_t counter = 0;
             while(!(I2Cx->SR1 & I2C_SR1_RXNE)) {
                 if (counter++ > 50000) { // safety timeout, in case nothing is received
                     errc = -2;

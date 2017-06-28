@@ -71,13 +71,13 @@
 #define GPIO_IRQ_CHANGE        0x30
 
 // configure operation mode of GPIO pin
-void hw_cfg_pin (GPIO_TypeDef* gpioport, u1_t pin, u2_t gpiocfg);
+void hw_cfg_pin (GPIO_TypeDef* gpioport, uint8_t pin, uint16_t gpiocfg);
 
 // set state of GPIO output pin
-void hw_set_pin (GPIO_TypeDef* gpioport, u1_t pin, u1_t state);
+void hw_set_pin (GPIO_TypeDef* gpioport, uint8_t pin, uint8_t state);
 
 // configure given line as external interrupt source (EXTI handler)
-void hw_cfg_extirq (u1_t portidx, u1_t pin, u1_t irqcfg);
+void hw_cfg_extirq (uint8_t portidx, uint8_t pin, uint8_t irqcfg);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -94,17 +94,17 @@ void hw_cfg_extirq (u1_t portidx, u1_t pin, u1_t irqcfg);
 #define EEPROM_BASE 0x08080000
 
 // write 32-bit word to EEPROM
-void eeprom_write (u4_t* addr, u4_t val);
+void eeprom_write (uint32_t* addr, uint32_t val);
 
 // copy bytes to EEPROM (aligned, multiple of 4)
-void eeprom_copy (void* dst, const void* src, u2_t len);
+void eeprom_copy (void* dst, const void* src, uint16_t len);
 
 
 //////////////////////////////////////////////////////////////////////
 // ADC
 //////////////////////////////////////////////////////////////////////
 
-u2_t adc_read (u1_t chnl);
+uint16_t adc_read (uint8_t chnl);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -121,10 +121,10 @@ void crc32_shutdown (void);
 //////////////////////////////////////////////////////////////////////
 
 // initialize i2c-bus
-u1_t i2c_init (void);
+uint8_t i2c_init (void);
 
 // transfer data to and from i2c-device
-s1_t i2c_xfer (u1_t addr, u1_t* data, u1_t wlen, u1_t rlen);
+int8_t i2c_xfer (uint8_t addr, uint8_t* data, uint8_t wlen, uint8_t rlen);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -135,10 +135,10 @@ s1_t i2c_xfer (u1_t addr, u1_t* data, u1_t wlen, u1_t rlen);
 #define SPI_MODE_CPOL  0x02
 
 // initialize SPI (modes 0-3, bit0=clock phase, bit1=clock polarity)
-void spi_init (u1_t mode);
+void spi_init (uint8_t mode);
 
 // transfer byte to and from SPI (no chip-select)
-u1_t spi_xfer (u1_t out);
+uint8_t spi_xfer (uint8_t out);
 
 
 
@@ -150,16 +150,16 @@ u1_t spi_xfer (u1_t out);
 //////////////////////////////////////////////////////////////////////
 #ifdef CFG_flash
 
-typedef u2_t const * pref2u2_t;
-typedef u1_t const * pref2u1_t;
-typedef pref2u1_t pref_t;
+typedef uint16_t const * pref2uint16_t;
+typedef uint8_t const * pref2uint8_t;
+typedef pref2uint8_t pref_t;
 
 
-pref2u1_t hw_flash_init();
-void hal_erase_p (pref2u1_t ppdst, u2_t len, u1_t itemsize);
-void hal_copy_x2p (pref2u1_t ppdst, u2_t len, u1_t *xpsrc);
-void hal_wrp_u1 (pref2u1_t ppdst, u1_t value);
-void hal_wrp_u2 (pref2u2_t ppdst, u2_t value);
+pref2uint8_t hw_flash_init();
+void hal_erase_p (pref2uint8_t ppdst, uint16_t len, uint8_t itemsize);
+void hal_copy_x2p (pref2uint8_t ppdst, uint16_t len, uint8_t *xpsrc);
+void hal_wrp_u1 (pref2uint8_t ppdst, uint8_t value);
+void hal_wrp_u2 (pref2uint16_t ppdst, uint16_t value);
 
 
 #endif /* CFG_flash */

@@ -44,7 +44,7 @@
 
 // init temperature reading on Freescale's MPL3115A2 sensor
 void blipper_temp_init() {
-    u1_t buf[2] = { MPL3115A2_CTRL_REG1, MPL3115A2_CTRL_REG1_SBYB_ACTIVE };
+    uint8_t buf[2] = { MPL3115A2_CTRL_REG1, MPL3115A2_CTRL_REG1_SBYB_ACTIVE };
     i2c_xfer(MPL3115A2_ADDR, buf, 2, 0); // write 2, read 0
 }
 
@@ -55,8 +55,8 @@ void blipper_temp_init() {
 // 0x00 to 0x05. This allows the host controller to read the status
 // register followed by the 20-bit Pressure/Altitude and 12-bit
 // Temperature in a 6 byte I2C transaction.
-u2_t blipper_temp_read() {
-    u1_t buf[2] = { MPL3115A2_OUT_T_MSB }; // read reg OUT_T_MSB, OUT_T_LSB
+uint16_t blipper_temp_read() {
+    uint8_t buf[2] = { MPL3115A2_OUT_T_MSB }; // read reg OUT_T_MSB, OUT_T_LSB
     i2c_xfer(MPL3115A2_ADDR, buf, 1, 2); // write 1, read 2
     return buf[0]<<8 | buf[1];
 }
@@ -68,8 +68,8 @@ u2_t blipper_temp_read() {
 // and with fractions of a meter stored in bits 7-4 of OUT_P_LSB.
 // Be aware that the fractional bits are not signed, therefore,
 // they are not represented in 2’s complement.
-s2_t blipper_alt_read() {
-    u1_t buf[2] = { MPL3115A2_OUT_P_MSB }; // read reg OUT_P_MSB, OUT_P_CSB
+int16_t blipper_alt_read() {
+    uint8_t buf[2] = { MPL3115A2_OUT_P_MSB }; // read reg OUT_P_MSB, OUT_P_CSB
     i2c_xfer(MPL3115A2_ADDR, buf, 1, 2); // write 1, read 2
     return buf[0]<<8 | buf[1];
 }
@@ -83,9 +83,9 @@ s2_t blipper_alt_read() {
 // bits are not signed, therefore, they are not represented in
 // 2's complement. When RAW is selected then the RAW value is
 // stored in all 16 bits of OUT_T_MSB and OUT_T_LSB
-void blipper_temp_str(u2_t temp, u1_t* str) {
-    u1_t t1 = temp >> 8;
-    u1_t t2 = temp & 0xFF;
+void blipper_temp_str(uint16_t temp, uint8_t* str) {
+    uint8_t t1 = temp >> 8;
+    uint8_t t2 = temp & 0xFF;
     if(t1 & 0x80) {
         str[0] = '-';
         t1 = 256 - t1;
@@ -111,7 +111,7 @@ void blipper_temp_str(u2_t temp, u1_t* str) {
 
 // init accelerometer reading from Freescale's MMA8451Q sensor
 void blipper_accel_init (void) {
-    u1_t buf[2] = { MMA8451Q_CTRL_REG1, MMA8451Q_CTRL_REG1_ACTIVE };
+    uint8_t buf[2] = { MMA8451Q_CTRL_REG1, MMA8451Q_CTRL_REG1_ACTIVE };
     i2c_xfer(MMA8451Q_ADDR, buf, 2, 0); // write 2, read 0
 }
 
@@ -124,8 +124,8 @@ void blipper_accel_init (void) {
 // only 8-bit results can use these 3 registers and ignore OUT_X,Y ,
 // Z_LSB. To do this, the F_READ bit in CTRL_REG1 must be set. When
 // the F_READ bit is cleared, the fast read mode is disabled.
-u4_t blipper_accel_read (void) {
-    u1_t buf[7] = { MMA8451Q_STATUS }; // read reg STATUS, X, X, Y, Y, Z, Z
+uint32_t blipper_accel_read (void) {
+    uint8_t buf[7] = { MMA8451Q_STATUS }; // read reg STATUS, X, X, Y, Y, Z, Z
     i2c_xfer(MMA8451Q_ADDR, buf, 1, 7); // write 1, read 7
     return buf[0]<<24 | buf[1]<<16 | buf[3]<<8 | buf[5]; // (0xSSXXYYZZ)
 }
@@ -140,14 +140,14 @@ u4_t blipper_accel_read (void) {
 // if only the 8-bit results are used. For more information on the
 // data manipulation between data formats and modes, refer to
 // Freescale application.
-void blipper_accel_str (u1_t acc, u1_t* str) {
+void blipper_accel_str (uint8_t acc, uint8_t* str) {
     if(acc & 0x80) {
         str[0] = '-';
         acc = 256 - acc;
     } else {
         str[0] = '+';
     }
-    u2_t g = acc*200/128; // map values 0..127 to 0..200 (0..2g)
+    uint16_t g = acc*200/128; // map values 0..127 to 0..200 (0..2g)
     str[4] = (g % 10) + '0';
     g /= 10;
     str[3] = (g % 10) + '0';
@@ -173,8 +173,8 @@ void blipper_accel_str (u1_t acc, u1_t* str) {
 #define SX1509_RegDataA      0x11
 
 // initialize SX1509 IO expander
-void blipper_ioexp_init (u2_t dir, u2_t data) {
-    u1_t buf[5] = { SX1509_RegDirB };
+void blipper_ioexp_init (uint16_t dir, uint16_t data) {
+    uint8_t buf[5] = { SX1509_RegDirB };
 
     if(dir == 0x0000) { // use default
         dir  = 0x8FFF; // direction of LEDs OUT, all other IN
@@ -190,27 +190,27 @@ void blipper_ioexp_init (u2_t dir, u2_t data) {
 }
 
 // get pin states of IO expander
-u2_t blipper_ioexp_read (void) {
-    u1_t buf[2] = { SX1509_RegDataB };
+uint16_t blipper_ioexp_read (void) {
+    uint8_t buf[2] = { SX1509_RegDataB };
     i2c_xfer(SX1509_ADDR, buf, 1, 2); // write 1, read 2
     return buf[0]<<8 | buf[1];
 }
 
 // set pin states of IO expander
-void blipper_ioexp_write (u2_t data) {
-    u1_t buf[3] = { SX1509_RegDataB, data >> 8, data };
+void blipper_ioexp_write (uint16_t data) {
+    uint8_t buf[3] = { SX1509_RegDataB, data >> 8, data };
     i2c_xfer(SX1509_ADDR, buf, 3, 0); // write 3, read 0
 }
 
 // get LED state (no 0-2)
-u1_t blipper_led_get (u1_t no) {
+uint8_t blipper_led_get (uint8_t no) {
     return ((blipper_ioexp_read() & (1 << 12+no)) == 0);
 }
 
 // set LED state (no 0-2, mode 0=off, 1=on, 2=toggle)
-void blipper_led_set (u1_t no, u1_t mode) {
-    u2_t state = blipper_ioexp_read();
-    u2_t mask = 1 << 12+no;
+void blipper_led_set (uint8_t no, uint8_t mode) {
+    uint16_t state = blipper_ioexp_read();
+    uint16_t mask = 1 << 12+no;
     switch(mode) {
       case 0: state |= mask;  break; // off, set to high
       case 1: state &= ~mask; break; // on, set to low

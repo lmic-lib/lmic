@@ -27,7 +27,7 @@
 
 #include "hw.h"
 
-u2_t adc_read (u1_t chnl) {
+uint16_t adc_read (uint8_t chnl) {
     RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;   // make sure the ADC is clocked
     ADC1->CR2 |= ADC_CR2_ADON;            // switch on the ADC
     ADC1->SQR5 = chnl;                    // select the channel for the 1st conversion

@@ -47,28 +47,28 @@
 
 // layout of join paramters
 typedef struct {
-    u1_t deveui[8];
-    u1_t appeui[8];
-    u1_t devkey[16];
+    uint8_t deveui[8];
+    uint8_t appeui[8];
+    uint8_t devkey[16];
 } joinparam_t;
 
 // layout of session parameters
 typedef struct {
-    u4_t netid;
+    uint32_t netid;
     devaddr_t devaddr;
-    u1_t nwkkey[16];
-    u1_t artkey[16];
+    uint8_t nwkkey[16];
+    uint8_t artkey[16];
 } sessparam_t;
 
 // persistent state
 typedef struct {
-    u4_t cfghash;
-    u4_t flags;
+    uint32_t cfghash;
+    uint32_t flags;
     joinparam_t joinpar;
     sessparam_t sesspar;
-    u4_t seqnoDn;
-    u4_t seqnoUp;
-    u4_t eventmask;
+    uint32_t seqnoDn;
+    uint32_t seqnoUp;
+    uint32_t eventmask;
 } persist_t;
 
 #define FLAGS_JOINPAR 0x01
@@ -90,11 +90,11 @@ typedef struct {
 #define FRAME_B_ERR  0xB5
 
 typedef struct {
-    u1_t state;
-    u1_t *buf;
-    u2_t len;
-    u2_t max;
-    u1_t lrc;
+    uint8_t state;
+    uint8_t *buf;
+    uint16_t len;
+    uint16_t max;
+    uint8_t lrc;
  } FRAME;
 
 
@@ -103,32 +103,32 @@ void modem_rxdone (osjob_t* j);
 void modem_txdone (osjob_t* j);
 
 void buffer_init (void);
-u1_t* buffer_alloc (u2_t len);
-void buffer_free (u1_t* buf, u2_t len);
+uint8_t* buffer_alloc (uint16_t len);
+void buffer_free (uint8_t* buf, uint16_t len);
 
 void queue_init (void);
-void queue_add (u1_t* buf, u2_t len);
-u1_t queue_shift (FRAME* f);
+void queue_add (uint8_t* buf, uint16_t len);
+uint8_t queue_shift (FRAME* f);
 
-void frame_init (FRAME* f, u1_t* buf, u2_t max);
-u2_t frame_tx (u1_t next);
-u1_t frame_rx (u1_t c);
+void frame_init (FRAME* f, uint8_t* buf, uint16_t max);
+uint16_t frame_tx (uint8_t next);
+uint8_t frame_rx (uint8_t c);
 
 void usart_init (void);
 void usart_starttx (void);
 void usart_startrx (void);
 
 void leds_init (void);
-void leds_set (u1_t id, u1_t state);
+void leds_set (uint8_t id, uint8_t state);
 
-u1_t gethex (u1_t* dst, const u1_t* src, u2_t len);
-u1_t puthex (u1_t* dst, const u1_t* src, u1_t len);
-u1_t int2hex (u1_t* dst, u4_t v);
-u1_t hex2int (u4_t* n, const u1_t* src, u1_t len);
-u1_t dec2int (u4_t* n, const u1_t* src, u1_t len);
-void reverse (u1_t* dst, const u1_t* src, u1_t len);
-u1_t tolower (u1_t c);
-u1_t toupper (u1_t c);
+uint8_t gethex (uint8_t* dst, const uint8_t* src, uint16_t len);
+uint8_t puthex (uint8_t* dst, const uint8_t* src, uint8_t len);
+uint8_t int2hex (uint8_t* dst, uint32_t v);
+uint8_t hex2int (uint32_t* n, const uint8_t* src, uint8_t len);
+uint8_t dec2int (uint32_t* n, const uint8_t* src, uint8_t len);
+void reverse (uint8_t* dst, const uint8_t* src, uint8_t len);
+uint8_t tolower (uint8_t c);
+uint8_t toupper (uint8_t c);
 
-u1_t cpystr (u1_t* dst, const char* src);
-u1_t cmpstr (u1_t* buf, u1_t len, char* str);
+uint8_t cpystr (uint8_t* dst, const char* src);
+uint8_t cmpstr (uint8_t* buf, uint8_t len, char* str);

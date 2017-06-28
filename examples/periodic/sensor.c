@@ -35,6 +35,6 @@ void initsensor () {
 }
 
 // read PB12
-u2_t readsensor () {
+uint16_t readsensor () {
     return ((GPIOB->IDR & (1 << 12)) != 0);
 }

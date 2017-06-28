@@ -34,14 +34,14 @@
 
 static const union {
     joinparam_t param;
-    u1_t pattern[sizeof(joinparam_t)];
+    uint8_t pattern[sizeof(joinparam_t)];
 } joincfg = {
     .pattern = { PATTERN_JOINCFG_STR }
 };
 
 static const union {
     sessparam_t param;
-    u1_t pattern[sizeof(sessparam_t)];
+    uint8_t pattern[sizeof(sessparam_t)];
 } sesscfg = {
     .pattern = { PATTERN_SESSCFG_STR }
 };
@@ -68,11 +68,11 @@ static const char* evnames[] = {
 };
 
 // return mask of all events matching given string prefix
-static u4_t evmatch (u1_t* name, u1_t len) {
-    u4_t mask = 0;
-    for(u1_t e=0; e < sizeof(evnames)/sizeof(evnames[0]); e++) {
+static uint32_t evmatch (uint8_t* name, uint8_t len) {
+    uint32_t mask = 0;
+    for(uint8_t e=0; e < sizeof(evnames)/sizeof(evnames[0]); e++) {
 	if(evnames[e]) {
-	    u1_t l;
+	    uint8_t l;
 	    for(l=0; l<len && toupper(name[l]) == evnames[e][l]; l++); // compare
 	    if(l == len) mask |= (1 << e);
 	}
@@ -83,26 +83,26 @@ static u4_t evmatch (u1_t* name, u1_t len) {
 
 // transient state
 static struct {
-    u1_t cmdbuf[300];
-    u2_t rsplen;
-    u1_t txpending;
+    uint8_t cmdbuf[300];
+    uint16_t rsplen;
+    uint8_t txpending;
     osjob_t alarmjob;
     osjob_t blinkjob;
     osjob_t ledjob;
 } MODEM;
 
 // provide device EUI (LSBF)
-void os_getDevEui (u1_t* buf) {
+void os_getDevEui (uint8_t* buf) {
     memcpy(buf, PERSIST->joinpar.deveui, 8);
 }
 
 // provide device key
-void os_getDevKey (u1_t* buf) {
+void os_getDevKey (uint8_t* buf) {
     memcpy(buf, PERSIST->joinpar.devkey, 16);
 }
 
 // provide application EUI (LSBF)
-void os_getArtEui (u1_t* buf) {
+void os_getArtEui (uint8_t* buf) {
     memcpy(buf, PERSIST->joinpar.appeui, 8);
 }
 
@@ -112,7 +112,7 @@ extern FRAME txframe;
 
 // blink session led
 static void blinkfunc (osjob_t* j) {
-    static u1_t ledstate;
+    static uint8_t ledstate;
     // toggle LED
     ledstate = !ledstate;
     leds_set(LED_SESSION, ledstate);
@@ -182,12 +182,12 @@ void onEvent (ev_t ev) {
 
     // report events (selected by eventmask)
     if(PERSIST->eventmask & (1 << ev)) {
-	u1_t len = strlen(evnames[ev]);
-	u1_t* buf;
+	uint8_t len = strlen(evnames[ev]);
+	uint8_t* buf;
 	switch(ev) {
 	case EV_TXCOMPLETE:
 	case EV_RXCOMPLETE: { // report EV_XXCOMPLETE,<flags>[,<port>[,<downstream data>]]
-	    u1_t f = LMIC.txrxFlags; // EV_XXCOMPLETE,FF[,PP[,DDDDDDDD...]]
+	    uint8_t f = LMIC.txrxFlags; // EV_XXCOMPLETE,FF[,PP[,DDDDDDDD...]]
 	    buf = buffer_alloc(3 + len + 1 + 2 + ((f & TXRX_PORT) ? 3 : 0) + (LMIC.dataLen ? 1+2*LMIC.dataLen:0) + 2);
 	    memcpy(buf, "EV_", 3);
 	    memcpy(buf+3, evnames[ev], len);
@@ -247,13 +247,13 @@ static void modem_reset () {
 }
 
 // initialize persistent state (factory reset)
-static void persist_init (u1_t factory) {
+static void persist_init (uint8_t factory) {
     // check if stored state matches firmware config
-    u2_t joincfgcrc = os_crc16((u1_t*)&joincfg, sizeof(joincfg));
-    u2_t sesscfgcrc = os_crc16((u1_t*)&sesscfg, sizeof(sesscfg));
-    u4_t cfghash = (joincfgcrc << 16) | sesscfgcrc;
+    uint16_t joincfgcrc = os_crc16((uint8_t*)&joincfg, sizeof(joincfg));
+    uint16_t sesscfgcrc = os_crc16((uint8_t*)&sesscfg, sizeof(sesscfg));
+    uint32_t cfghash = (joincfgcrc << 16) | sesscfgcrc;
     if(PERSIST->cfghash != cfghash || factory) {
-	u4_t flags = 0;
+	uint32_t flags = 0;
 	if(joincfgcrc != PATTERN_JOINCFG_CRC) { // patched
 	    eeprom_copy(&PERSIST->joinpar, &joincfg, sizeof(joincfg));
 	    flags |= FLAGS_JOINPAR;
@@ -295,10 +295,10 @@ void modem_init () {
 // called by frame job
 // process command and prepare response in MODEM.cmdbuf[]
 void modem_rxdone (osjob_t* j) {
-    u1_t ok = 0;
-    u1_t cmd = tolower(MODEM.cmdbuf[0]);
-    u1_t len = rxframe.len;
-    u1_t* rspbuf = MODEM.cmdbuf;
+    uint8_t ok = 0;
+    uint8_t cmd = tolower(MODEM.cmdbuf[0]);
+    uint8_t len = rxframe.len;
+    uint8_t* rspbuf = MODEM.cmdbuf;
     if(len == 0) { // AT
 	ok = 1;
     } else if(cmd == 'v' && len == 2 && MODEM.cmdbuf[1] == '?') { // ATV? query version
@@ -313,13 +313,13 @@ void modem_rxdone (osjob_t* j) {
 	modem_reset();
 	ok = 1;
     } else if(cmd == 'e' && len >= 2) { // event mask (query/set/add/remove)
-	u1_t mode = MODEM.cmdbuf[1];
+	uint8_t mode = MODEM.cmdbuf[1];
 	if(mode == '?' && len == 2) { // ATE? query
 	    rspbuf += cpystr(rspbuf, "OK,");
 	    if(PERSIST->eventmask == 0)       rspbuf += cpystr(rspbuf, "NONE");
 	    else if(PERSIST->eventmask == ~0) rspbuf += cpystr(rspbuf, "ALL");
 	    else {
-		for(u1_t e=0; e<32; e++) {
+		for(uint8_t e=0; e<32; e++) {
 		    if(e < sizeof(evnames)/sizeof(evnames[0]) && evnames[e] && (PERSIST->eventmask & (1 << e))) {
 			if(rspbuf - MODEM.cmdbuf != 3) *rspbuf++ = '|';
 			rspbuf += cpystr(rspbuf, evnames[e]);
@@ -328,8 +328,8 @@ void modem_rxdone (osjob_t* j) {
 	    }
 	    ok = 1;
 	} else if(mode == '=' || mode == '+' || mode == '-') { // ATE= ATE+ ATE- set/add/remove
-	    u1_t i, j, clear = 0;
-	    u4_t mask = 0;
+	    uint8_t i, j, clear = 0;
+	    uint32_t mask = 0;
 	    for(i=2; i < len; i = j+1) {
 		for(j=i; j < len && MODEM.cmdbuf[j]!='|'; j++);
 		mask |= evmatch(MODEM.cmdbuf+i, j-i);
@@ -383,7 +383,7 @@ void modem_rxdone (osjob_t* j) {
     } else if(cmd == 'j' && len >= 2) { // JOIN parameters
 	if(MODEM.cmdbuf[1] == '?' && len == 2) { // ATJ? query (deveui,appeui)
 	    if(PERSIST->flags & FLAGS_JOINPAR) {
-		u1_t tmp[8];
+		uint8_t tmp[8];
 		rspbuf += cpystr(rspbuf, "OK,");
 		reverse(tmp, PERSIST->joinpar.deveui, 8);
 		rspbuf += puthex(rspbuf, tmp, 8);
@@ -436,14 +436,14 @@ void modem_rxdone (osjob_t* j) {
 	}
     } else if(cmd == 'p' && len == 2) { // ATP set ping mode
 	if(LMIC.devaddr) { // requires a session
-	    u1_t n = MODEM.cmdbuf[1];
+	    uint8_t n = MODEM.cmdbuf[1];
 	    if(n>='0' && n<='7') {
 		LMIC_setPingable(n-'0');
 		ok = 1;
 	    }
 	}
     } else if(cmd == 'a' && len >= 2) { // ATA set alarm timer
-	u4_t secs;
+	uint32_t secs;
 	if(hex2int(&secs, MODEM.cmdbuf+1, len-1)) {
 	    os_setTimedCallback(&MODEM.alarmjob, os_getTime()+sec2osticks(secs), onAlarm);
 	    ok = 1;

@@ -30,13 +30,13 @@
 #include "debug.h"
 
 // LMIC application callbacks not used in his example
-void os_getArtEui (u1_t* buf) {
+void os_getArtEui (uint8_t* buf) {
 }
 
-void os_getDevEui (u1_t* buf) {
+void os_getDevEui (uint8_t* buf) {
 }
 
-void os_getDevKey (u1_t* buf) {
+void os_getDevKey (uint8_t* buf) {
 }
 
 void onEvent (ev_t ev) {

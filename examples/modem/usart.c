@@ -67,14 +67,14 @@ void USART_IRQHANDLER (void) {
     hal_disableIRQs();
 
     // check status reg (clears most of the flags)
-    u4_t sr = USART->SR;
+    uint32_t sr = USART->SR;
     if (sr & (USART_SR_PE|USART_SR_ORE|USART_SR_FE))  {
 	hal_failed();
     }
 
     // check for tx reg empty
     if( (USART->CR1 & USART_CR1_TXEIE) && (sr & USART_SR_TXE) ) {
-	u2_t c = frame_tx(1);
+	uint16_t c = frame_tx(1);
 	if((c & 0xFF00) == 0) { // send next char
 	    USART->DR = c;
 	} else { // no more chars - wait for completion

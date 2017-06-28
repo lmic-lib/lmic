@@ -30,7 +30,7 @@
 
 // sensor functions
 extern void initsensor(osjobcb_t callback);
-extern u2_t readsensor(void);
+extern uint16_t readsensor(void);
 
 
 //////////////////////////////////////////////////
@@ -38,13 +38,13 @@ extern u2_t readsensor(void);
 //////////////////////////////////////////////////
 
 // application router ID (LSBF)
-static const u1_t APPEUI[8]  = { 0x02, 0x00, 0x00, 0x00, 0x00, 0xEE, 0xFF, 0xC0 };
+static const uint8_t APPEUI[8]  = { 0x02, 0x00, 0x00, 0x00, 0x00, 0xEE, 0xFF, 0xC0 };
 
 // unique device ID (LSBF)
-static const u1_t DEVEUI[8]  = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF };
+static const uint8_t DEVEUI[8]  = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF };
 
 // device-specific AES key (derived from device EUI)
-static const u1_t DEVKEY[16] = { 0xAB, 0x89, 0xEF, 0xCD, 0x23, 0x01, 0x67, 0x45, 0x54, 0x76, 0x10, 0x32, 0xDC, 0xFE, 0x98, 0xBA };
+static const uint8_t DEVKEY[16] = { 0xAB, 0x89, 0xEF, 0xCD, 0x23, 0x01, 0x67, 0x45, 0x54, 0x76, 0x10, 0x32, 0xDC, 0xFE, 0x98, 0xBA };
 
 
 //////////////////////////////////////////////////
@@ -52,17 +52,17 @@ static const u1_t DEVKEY[16] = { 0xAB, 0x89, 0xEF, 0xCD, 0x23, 0x01, 0x67, 0x45,
 //////////////////////////////////////////////////
 
 // provide application router ID (8 bytes, LSBF)
-void os_getArtEui (u1_t* buf) {
+void os_getArtEui (uint8_t* buf) {
     memcpy(buf, APPEUI, 8);
 }
 
 // provide device ID (8 bytes, LSBF)
-void os_getDevEui (u1_t* buf) {
+void os_getDevEui (uint8_t* buf) {
     memcpy(buf, DEVEUI, 8);
 }
 
 // provide device key (16 bytes)
-void os_getDevKey (u1_t* buf) {
+void os_getDevKey (uint8_t* buf) {
     memcpy(buf, DEVKEY, 16);
 }
 
@@ -74,7 +74,7 @@ void os_getDevKey (u1_t* buf) {
 // report sensor value when change was detected
 static void sensorfunc (osjob_t* j) {
     // read sensor
-    u2_t val = readsensor();
+    uint16_t val = readsensor();
     debug_val("val = ", val);
     // prepare and schedule data for transmission
     LMIC.frame[0] = val << 8;

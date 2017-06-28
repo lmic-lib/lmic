@@ -36,8 +36,8 @@
                                  & ~GPIO_AF_PINi(i,GPIO_AF_MASK)) \
                                 |   GPIO_AF_PINi(i,af))
 
-void hw_cfg_pin (GPIO_TypeDef* gpioport, u1_t pin, u2_t gpiocfg) {
-    u1_t pin2 = 2*pin;
+void hw_cfg_pin (GPIO_TypeDef* gpioport, uint8_t pin, uint16_t gpiocfg) {
+    uint8_t pin2 = 2*pin;
 
     GPIO_AF_set(gpioport, pin, gpiocfg & GPIOCFG_AF_MASK);
     gpioport->MODER   = (gpioport->MODER   & ~(3 << pin2)) | (((gpiocfg >> GPIOCFG_MODE_SHIFT  ) & 3) << pin2);
@@ -46,20 +46,20 @@ void hw_cfg_pin (GPIO_TypeDef* gpioport, u1_t pin, u2_t gpiocfg) {
     gpioport->PUPDR   = (gpioport->PUPDR   & ~(3 << pin2)) | (((gpiocfg >> GPIOCFG_PUPD_SHIFT  ) & 3) << pin2);
 }
 
-void hw_set_pin (GPIO_TypeDef* gpioport, u1_t pin, u1_t state) {
+void hw_set_pin (GPIO_TypeDef* gpioport, uint8_t pin, uint8_t state) {
     gpioport->ODR     = (gpioport->ODR     & ~(1 << pin))  | ((state & 1) << pin );
 }
 
-void hw_cfg_extirq (u1_t portidx, u1_t pin, u1_t irqcfg) {
+void hw_cfg_extirq (uint8_t portidx, uint8_t pin, uint8_t irqcfg) {
     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN; // make sure module is on
 
     // configure external interrupt (every irq line 0-15 can be configured with a 4-bit port index A-G)
-    u4_t tmp1 = (pin & 0x3) << 2;
-    u4_t tmp2 = ((u4_t)0x0F) << tmp1;
-    SYSCFG->EXTICR[pin >> 2] = (SYSCFG->EXTICR[pin >> 2] & ~tmp2) | (((u4_t)portidx) << tmp1);
+    uint32_t tmp1 = (pin & 0x3) << 2;
+    uint32_t tmp2 = ((uint32_t)0x0F) << tmp1;
+    SYSCFG->EXTICR[pin >> 2] = (SYSCFG->EXTICR[pin >> 2] & ~tmp2) | (((uint32_t)portidx) << tmp1);
 
     // configure trigger and enable irq
-    u4_t mask = (u4_t)(1 << pin);
+    uint32_t mask = (uint32_t)(1 << pin);
     EXTI->RTSR &= ~mask; // clear trigger
     EXTI->FTSR &= ~mask; // clear trigger
     switch(irqcfg & GPIO_IRQ_MASK) {
@@ -70,7 +70,7 @@ void hw_cfg_extirq (u1_t portidx, u1_t pin, u1_t irqcfg) {
     EXTI->IMR |= mask;   // enable IRQ (pin x for configured port)
 
     // configure the NVIC
-    u1_t channel = (pin < 5) ? (EXTI0_IRQn+pin) : ((pin<10) ? EXTI9_5_IRQn : EXTI15_10_IRQn);
+    uint8_t channel = (pin < 5) ? (EXTI0_IRQn+pin) : ((pin<10) ? EXTI9_5_IRQn : EXTI15_10_IRQn);
     NVIC->IP[channel] = 0x70; // interrupt priority
     NVIC->ISER[channel>>5] = 1<<(channel&0x1F);  // set enable IRQ
 }
