@@ -340,7 +340,7 @@ extern inline int isSlowerDR (dr_t dr1, dr_t dr2);
 extern inline dr_t  incDR    (dr_t dr);
 extern inline dr_t  decDR    (dr_t dr);
 extern inline dr_t  assertDR (dr_t dr);
-extern inline dr_t  validDR  (dr_t dr);
+extern inline bit_t validDR  (dr_t dr);
 extern inline dr_t  lowerDR  (dr_t dr, u1_t n);
 
 extern inline sf_t  getSf    (rps_t params);
