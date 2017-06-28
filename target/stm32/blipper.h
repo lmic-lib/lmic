@@ -34,13 +34,13 @@
 void blipper_temp_init (void);
 
 // read temperature from Freescale's MPL3115A2 sensor
-u2_t blipper_temp_read (void);
+uint16_t blipper_temp_read (void);
 
 // read altitude from Freescale's MPL3115A2 sensor
-s2_t blipper_alt_read (void);
+int16_t blipper_alt_read (void);
 
 // format temp value as 5-digit string "+99.9"
-void blipper_temp_str(u2_t temp, u1_t* str);
+void blipper_temp_str(uint16_t temp, uint8_t* str);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -51,10 +51,10 @@ void blipper_temp_str(u2_t temp, u1_t* str);
 void blipper_accel_init (void);
 
 // read accelaration from Freescale's MMA8451Q sensor (0xSSXXYYZZ)
-u4_t blipper_accel_read (void);
+uint32_t blipper_accel_read (void);
 
 // format acceleration value as 5-digit string "+0.00"
-void blipper_accel_str (u1_t acc, u1_t* str);
+void blipper_accel_str (uint8_t acc, uint8_t* str);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -62,21 +62,21 @@ void blipper_accel_str (u1_t acc, u1_t* str);
 //////////////////////////////////////////////////////////////////////
 
 // initialize SX1509 IO expander
-void blipper_ioexp_init (u2_t dir, u2_t data);
+void blipper_ioexp_init (uint16_t dir, uint16_t data);
 
 // get pin states of IO expander
-u2_t blipper_ioexp_read (void);
+uint16_t blipper_ioexp_read (void);
 
 // set pin states of IO expander
-void blipper_ioexp_write (u2_t data);
+void blipper_ioexp_write (uint16_t data);
 
 enum { LED_RED=0, LED_GREEN, LED_YELLOW };
 
 // get LED state (no 0-2)
-void blipper_led_get (u1_t no);
+void blipper_led_get (uint8_t no);
 
 // set LED state (no 0-2, mode 0=off, 1=on, 2=toggle)
-void blipper_led_set (u1_t no, u1_t mode);
+void blipper_led_set (uint8_t no, uint8_t mode);
 
 
 

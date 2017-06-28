@@ -28,4 +28,4 @@
 
 void leds_init (void);
 
-void leds_set (u1_t id, u1_t state);
+void leds_set (uint8_t id, uint8_t state);

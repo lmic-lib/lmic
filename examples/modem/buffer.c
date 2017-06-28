@@ -31,17 +31,17 @@
 
 // ring buffer - append at end, free from beg
 
-static u1_t buffer[1024];
-static u1_t* beg;
-static u1_t* end;
-static u1_t* max;
+static uint8_t buffer[1024];
+static uint8_t* beg;
+static uint8_t* end;
+static uint8_t* max;
 
 void buffer_init () {
     beg = end = max = buffer;
 }
 
-u1_t* buffer_alloc (u2_t len) {
-    u1_t* buf = NULL;
+uint8_t* buffer_alloc (uint16_t len) {
+    uint8_t* buf = NULL;
     hal_disableIRQs();
     if(beg <= end) { // .......******...
 	if(end + len < buffer + sizeof(buffer)) { // append
@@ -64,7 +64,7 @@ u1_t* buffer_alloc (u2_t len) {
     return buf;
 }
 
-void buffer_free (u1_t* buf, u2_t len) {
+void buffer_free (uint8_t* buf, uint16_t len) {
     if(buf >= buffer && buf+len < buffer+sizeof(buffer)) {
 	hal_disableIRQs();
 	while(buf != beg); // halt if trying to free not from beginning

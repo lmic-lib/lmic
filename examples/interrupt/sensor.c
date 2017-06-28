@@ -45,7 +45,7 @@ void initsensor (osjobcb_t callback) {
 }
 
 // read PB12
-u2_t readsensor () {
+uint16_t readsensor () {
     return ((GPIOB->IDR & (1 << INP_PIN)) != 0);
 }
 

@@ -29,7 +29,7 @@
 #include "lmic.h"
 
 // write 32-bit word to EEPROM memory
-void eeprom_write (u4_t* addr, u4_t val) {
+void eeprom_write (uint32_t* addr, uint32_t val) {
     // check previous value
     if( *addr != val ) {
         // unlock data eeprom memory and registers
@@ -49,15 +49,15 @@ void eeprom_write (u4_t* addr, u4_t val) {
         FLASH->PECR |= FLASH_PECR_PELOCK;
 
         // verify value
-        while( *(volatile u4_t*)addr != val ); // halt on mismatch
+        while( *(volatile uint32_t*)addr != val ); // halt on mismatch
     }
 }
 
-void eeprom_copy (void* dst, const void* src, u2_t len) {
-    while(((u4_t)dst & 3) || ((u4_t)src & 3) || (len & 3)); // halt if not multiples of 4
-    u4_t* d = (u4_t*)dst;
-    u4_t* s = (u4_t*)src;
-    u2_t  l = len/4;
+void eeprom_copy (void* dst, const void* src, uint16_t len) {
+    while(((uint32_t)dst & 3) || ((uint32_t)src & 3) || (len & 3)); // halt if not multiples of 4
+    uint32_t* d = (uint32_t*)dst;
+    uint32_t* s = (uint32_t*)src;
+    uint16_t  l = len/4;
 
     while(l--) {
         eeprom_write(d++, *s++);

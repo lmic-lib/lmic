@@ -28,7 +28,7 @@
 #include "lmic.h"
 #include "modem.h"
 
-static const s1_t hexval[] = {
+static const int8_t hexval[] = {
     /*00-1F*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
     /*20-3F*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,-1,-1,-1,-1,-1,
     /*40-5F*/ -1,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -39,13 +39,13 @@ static const s1_t hexval[] = {
     /*E0-FF*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 };
 
-u1_t gethex (u1_t* dst, const u1_t* src, u2_t len) {
-    u1_t n = 0;
+uint8_t gethex (uint8_t* dst, const uint8_t* src, uint16_t len) {
+    uint8_t n = 0;
     if(len & 1) { // odd number of digits
 	return 0;
     }
     while(len--) {
-	s1_t v = hexval[*src++];
+	int8_t v = hexval[*src++];
 	if(v < 0) { // bad hex digit
 	    return 0;
 	}
@@ -58,8 +58,8 @@ u1_t gethex (u1_t* dst, const u1_t* src, u2_t len) {
     return n;
 }
 
-u1_t puthex (u1_t* dst, const u1_t* src, u1_t len) {
-    u1_t l = len;
+uint8_t puthex (uint8_t* dst, const uint8_t* src, uint8_t len) {
+    uint8_t l = len;
     while(len--) {
 	*dst++ = "0123456789ABCDEF"[*src >> 4];
 	*dst++ = "0123456789ABCDEF"[*src & 0xF];
@@ -68,8 +68,8 @@ u1_t puthex (u1_t* dst, const u1_t* src, u1_t len) {
     return 2*l;
 }
 
-u1_t int2hex (u1_t* dst, u4_t v) {
-    u1_t tmp[4];
+uint8_t int2hex (uint8_t* dst, uint32_t v) {
+    uint8_t tmp[4];
     tmp[0] = v >> 24;
     tmp[1] = v >> 16;
     tmp[2] = v >>  8;
@@ -78,10 +78,10 @@ u1_t int2hex (u1_t* dst, u4_t v) {
     return 8;
 }
 
-u1_t hex2int (u4_t* n, const u1_t* src, u1_t len) {
+uint8_t hex2int (uint32_t* n, const uint8_t* src, uint8_t len) {
     *n = 0;
     while(len--) {
-	s1_t v = hexval[*src++];
+	int8_t v = hexval[*src++];
 	if(v < 0) { // bad hex digit
 	    return 0;
 	}
@@ -90,10 +90,10 @@ u1_t hex2int (u4_t* n, const u1_t* src, u1_t len) {
     return 1;
 }
 
-u1_t dec2int (u4_t* n, const u1_t* src, u1_t len) {
+uint8_t dec2int (uint32_t* n, const uint8_t* src, uint8_t len) {
     *n = 0;
     while(len--) {
-	u1_t v = *src++;
+	uint8_t v = *src++;
 	if(v < '0' || v > '9') { // bad decimal digit
 	    return 0;
 	}
@@ -102,37 +102,37 @@ u1_t dec2int (u4_t* n, const u1_t* src, u1_t len) {
     return 1;
 }
 
-void reverse (u1_t* dst, const u1_t* src, u1_t len) {
+void reverse (uint8_t* dst, const uint8_t* src, uint8_t len) {
     // works in-place (but not arbitrarily overlapping)
-    for(u1_t i=0, j=len-1; i < j; i++, j--) {
-	u1_t x = src[i];
+    for(uint8_t i=0, j=len-1; i < j; i++, j--) {
+	uint8_t x = src[i];
 	dst[i] = src[j];
 	dst[j] = x;
     }
 }
 
-u1_t tolower (u1_t c) {
+uint8_t tolower (uint8_t c) {
     if(c >= 'A' && c <= 'Z') {
 	c += 'a' - 'A'; // make lower case
     }
     return c;
 }
 
-u1_t toupper (u1_t c) {
+uint8_t toupper (uint8_t c) {
     if(c >= 'a' && c <= 'z') {
 	c -= 'a' - 'A'; // make upper case
     }
     return c;
 }
 
-u1_t cpystr (u1_t* dst, const char* src) {
-    u1_t n = 0;
+uint8_t cpystr (uint8_t* dst, const char* src) {
+    uint8_t n = 0;
     while( (*dst++ = *src++) != 0 ) n++;
     return n;
 }
 
 // compare buffer with nul-terminated string (case-insensitive)
-u1_t cmpstr (u1_t* buf, u1_t len, char* str) {
+uint8_t cmpstr (uint8_t* buf, uint8_t len, char* str) {
     while(len--) {
 	if(tolower(*buf++) != tolower(*str++)) {
 	    return 0;

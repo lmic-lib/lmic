@@ -49,8 +49,8 @@
 #define DIO2_PORT          1 // DIO2: PB5, sx1276  (line 10-15 irq handler)
 #define DIO2_PIN           5
 
-static const u1_t outputpins[] = { NSS_PORT, NSS_PIN, TX_PORT, TX_PIN  };
-static const u1_t inputpins[]  = { DIO0_PORT, DIO0_PIN, DIO1_PORT, DIO1_PIN, DIO2_PORT, DIO2_PIN };
+static const uint8_t outputpins[] = { NSS_PORT, NSS_PIN, TX_PORT, TX_PIN  };
+static const uint8_t inputpins[]  = { DIO0_PORT, DIO0_PIN, DIO1_PORT, DIO1_PIN, DIO2_PORT, DIO2_PIN };
 
 #elif CFG_wimod_board
 
@@ -73,8 +73,8 @@ static const u1_t inputpins[]  = { DIO0_PORT, DIO0_PIN, DIO1_PORT, DIO1_PIN, DIO
 #define DIO2_PORT          1 // DIO2: PB11  (line 10-15 irq handler)
 #define DIO2_PIN          11
 
-static const u1_t outputpins[] = { NSS_PORT, NSS_PIN, TX_PORT, TX_PIN, RX_PORT, RX_PIN };
-static const u1_t inputpins[]  = { DIO0_PORT, DIO0_PIN, DIO1_PORT, DIO1_PIN, DIO2_PORT, DIO2_PIN };
+static const uint8_t outputpins[] = { NSS_PORT, NSS_PIN, TX_PORT, TX_PIN, RX_PORT, RX_PIN };
+static const uint8_t inputpins[]  = { DIO0_PORT, DIO0_PIN, DIO1_PORT, DIO1_PIN, DIO2_PORT, DIO2_PIN };
 
 #else
 #error Missing CFG_sx1276mb1_board/CFG_wimod_board!
@@ -83,7 +83,7 @@ static const u1_t inputpins[]  = { DIO0_PORT, DIO0_PIN, DIO1_PORT, DIO1_PIN, DIO
 // HAL state
 static struct {
     int irqlevel;
-    u4_t ticks;
+    uint32_t ticks;
 } HAL;
 
 // -----------------------------------------------------------------------------
@@ -94,20 +94,20 @@ static void hal_io_init () {
     RCC->AHBENR  |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOCEN;
 
     // configure output lines and set to low state
-    for(u1_t i=0; i<sizeof(outputpins); i+=2) {
+    for(uint8_t i=0; i<sizeof(outputpins); i+=2) {
         hw_cfg_pin(GPIOx(outputpins[i]), outputpins[i+1], GPIOCFG_MODE_OUT | GPIOCFG_OSPEED_40MHz | GPIOCFG_OTYPE_PUPD | GPIOCFG_PUPD_PUP);
         hw_set_pin(GPIOx(outputpins[i]), outputpins[i+1], 0);
     }
 
     // configure input lines and register IRQ
-    for(u1_t i=0; i<sizeof(inputpins); i+=2) {
+    for(uint8_t i=0; i<sizeof(inputpins); i+=2) {
         hw_cfg_pin(GPIOx(inputpins[i]), inputpins[i+1], GPIOCFG_MODE_INP | GPIOCFG_OSPEED_40MHz | GPIOCFG_OTYPE_OPEN);
         hw_cfg_extirq(inputpins[i], inputpins[i+1], GPIO_IRQ_RISING);
     }
 }
 
 // val ==1  => tx 1, rx 0 ; val == 0 => tx 0, rx 1
-void hal_pin_rxtx (u1_t val) {
+void hal_pin_rxtx (uint8_t val) {
     ASSERT(val == 1 || val == 0);
 #ifndef CFG_sx1276mb1_board
     hw_set_pin(GPIOx(RX_PORT), RX_PIN, ~val);
@@ -117,12 +117,12 @@ void hal_pin_rxtx (u1_t val) {
 
 
 // set radio NSS pin to given value
-void hal_pin_nss (u1_t val) {
+void hal_pin_nss (uint8_t val) {
     hw_set_pin(GPIOx(NSS_PORT), NSS_PIN, val);
 }
 
 // set radio RST pin to given value (or keep floating!)
-void hal_pin_rst (u1_t val) {
+void hal_pin_rst (uint8_t val) {
     if(val == 0 || val == 1) { // drive pin
         hw_cfg_pin(GPIOx(RST_PORT), RST_PIN, GPIOCFG_MODE_OUT | GPIOCFG_OSPEED_40MHz | GPIOCFG_OTYPE_PUPD | GPIOCFG_PUPD_PUP);
         hw_set_pin(GPIOx(RST_PORT), RST_PIN, val);
@@ -131,7 +131,7 @@ void hal_pin_rst (u1_t val) {
     }
 }
 
-extern void radio_irq_handler(u1_t dio);
+extern void radio_irq_handler(uint8_t dio);
 
 // generic EXTI IRQ handler for all channels
 void EXTI_IRQHandler () {
@@ -222,7 +222,7 @@ static void hal_spi_init () {
 }
 
 // perform SPI transaction with radio
-u1_t hal_spi (u1_t out) {
+uint8_t hal_spi (uint8_t out) {
     SPI1->DR = out;
     while( (SPI1->SR & SPI_SR_RXNE ) == 0);
     return SPI1->DR; // in
@@ -261,10 +261,10 @@ static void hal_time_init () {
     TIM9->CR1 = TIM_CR1_CEN;
 }
 
-u4_t hal_ticks () {
+uint32_t hal_ticks () {
     hal_disableIRQs();
-    u4_t t = HAL.ticks;
-    u2_t cnt = TIM9->CNT;
+    uint32_t t = HAL.ticks;
+    uint16_t cnt = TIM9->CNT;
     if( (TIM9->SR & TIM_SR_UIF) ) {
         // Overflow before we read CNT?
         // Include overflow in evaluation but
@@ -277,21 +277,21 @@ u4_t hal_ticks () {
 }
 
 // return modified delta ticks from now to specified ticktime (0 for past, FFFF for far future)
-static u2_t deltaticks (u4_t time) {
-    u4_t t = hal_ticks();
-    s4_t d = time - t;
+static uint16_t deltaticks (uint32_t time) {
+    uint32_t t = hal_ticks();
+    int32_t d = time - t;
     if( d<=0 ) return 0;    // in the past
     if( (d>>16)!=0 ) return 0xFFFF; // far ahead
-    return (u2_t)d;
+    return (uint16_t)d;
 }
 
-void hal_waitUntil (u4_t time) {
+void hal_waitUntil (uint32_t time) {
     while( deltaticks(time) != 0 ); // busy wait until timestamp is reached
 }
 
 // check and rewind for target time
-u1_t hal_checkTimer (u4_t time) {
-    u2_t dt;
+uint8_t hal_checkTimer (uint32_t time) {
+    uint16_t dt;
     TIM9->SR &= ~TIM_SR_CC2IF; // clear any pending interrupts
     if((dt = deltaticks(time)) < 5) { // event is now (a few ticks ahead)
         TIM9->DIER &= ~TIM_DIER_CC2IE; // disable IE
@@ -353,7 +353,7 @@ void hal_init () {
     hal_enableIRQs();
 }
 
-void hal_failed (const char * /* file */, u2_t /* line */);
+void hal_failed (const char * /* file */, uint16_t /* line */);
     // HALT...
     hal_disableIRQs();
     hal_sleep();

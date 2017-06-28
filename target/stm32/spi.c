@@ -42,7 +42,7 @@
 
 #define GPIO_AF_SPI2        0x05
 
-void spi_init (u1_t mode) {
+void spi_init (uint8_t mode) {
     // enable clocks
     RCC->AHBENR  |= RCC_AHBENR_GPIOBEN; // GPIO ports B
     RCC->APB1ENR |= RCC_APB1ENR_SPI2EN; // SPI interface 2
@@ -61,7 +61,7 @@ void spi_init (u1_t mode) {
 }
 
 // perform SPI transaction
-u1_t spi_xfer (u1_t out) {
+uint8_t spi_xfer (uint8_t out) {
     SPI2->DR = out;
     while( (SPI2->SR & SPI_SR_RXNE ) == 0);
     return SPI2->DR; // in
