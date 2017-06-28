@@ -39,7 +39,7 @@ u4_t AESAUX[16/sizeof(u4_t)];
 u4_t AESKEY[16/sizeof(u4_t)];
 
 // Shift the given buffer left one bit
-static void shift_left(xref2u1_t buf, u1_t len) {
+static void shift_left(u1_t *buf, u1_t len) {
     while (len--) {
         u1_t next = len ? buf[1] : 0;
 
@@ -53,7 +53,7 @@ static void shift_left(xref2u1_t buf, u1_t len) {
 // Apply RFC4493 CMAC, using AESKEY as the key. If prepend_aux is true,
 // AESAUX is prepended to the message. AESAUX is used as working memory
 // in any case. The CMAC result is returned in AESAUX as well.
-static void os_aes_cmac(xref2u1_t buf, u2_t len, u1_t prepend_aux) {
+static void os_aes_cmac(u1_t *buf, u2_t len, u1_t prepend_aux) {
     if (prepend_aux)
         lmic_aes_encrypt(AESaux, AESkey);
     else
@@ -107,7 +107,7 @@ static void os_aes_cmac(xref2u1_t buf, u2_t len, u1_t prepend_aux) {
 // Run AES-CTR using the key in AESKEY and using AESAUX as the
 // counter block. The last byte of the counter block will be incremented
 // for every block. The given buffer will be encrypted in place.
-static void os_aes_ctr (xref2u1_t buf, u2_t len) {
+static void os_aes_ctr (u1_t *buf, u2_t len) {
     u1_t ctr[16];
     while (len) {
         // Encrypt the counter block with the selected key
@@ -123,7 +123,7 @@ static void os_aes_ctr (xref2u1_t buf, u2_t len) {
     }
 }
 
-u4_t os_aes (u1_t mode, xref2u1_t buf, u2_t len) {
+u4_t os_aes (u1_t mode, u1_t *buf, u2_t len) {
     switch (mode & ~AES_MICNOAUX) {
         case AES_MIC:
             os_aes_cmac(buf, len, /* prepend_aux */ !(mode & AES_MICNOAUX));

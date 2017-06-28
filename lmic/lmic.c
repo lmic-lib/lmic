@@ -75,34 +75,34 @@ static void startScan (void);
 #if !defined(HAS_os_calls)
 
 #if !defined(os_rlsbf2)
-u2_t os_rlsbf2 (xref2cu1_t buf) {
+u2_t os_rlsbf2 (const u1_t *buf) {
     return (u2_t)((u2_t)buf[0] | ((u2_t)buf[1]<<8));
 }
 #endif
 
 #if !defined(os_rlsbf4)
-u4_t os_rlsbf4 (xref2cu1_t buf) {
+u4_t os_rlsbf4 (const u1_t *buf) {
     return (u4_t)((u4_t)buf[0] | ((u4_t)buf[1]<<8) | ((u4_t)buf[2]<<16) | ((u4_t)buf[3]<<24));
 }
 #endif
 
 
 #if !defined(os_rmsbf4)
-u4_t os_rmsbf4 (xref2cu1_t buf) {
+u4_t os_rmsbf4 (const u1_t *buf) {
     return (u4_t)((u4_t)buf[3] | ((u4_t)buf[2]<<8) | ((u4_t)buf[1]<<16) | ((u4_t)buf[0]<<24));
 }
 #endif
 
 
 #if !defined(os_wlsbf2)
-void os_wlsbf2 (xref2u1_t buf, u2_t v) {
+void os_wlsbf2 (u1_t *buf, u2_t v) {
     buf[0] = v;
     buf[1] = v>>8;
 }
 #endif
 
 #if !defined(os_wlsbf4)
-void os_wlsbf4 (xref2u1_t buf, u4_t v) {
+void os_wlsbf4 (u1_t *buf, u4_t v) {
     buf[0] = v;
     buf[1] = v>>8;
     buf[2] = v>>16;
@@ -111,7 +111,7 @@ void os_wlsbf4 (xref2u1_t buf, u4_t v) {
 #endif
 
 #if !defined(os_wmsbf4)
-void os_wmsbf4 (xref2u1_t buf, u4_t v) {
+void os_wmsbf4 (u1_t *buf, u4_t v) {
     buf[3] = v;
     buf[2] = v>>8;
     buf[1] = v>>16;
@@ -127,7 +127,7 @@ u1_t os_getBattLevel (void) {
 
 #if !defined(os_crc16)
 // New CRC-16 CCITT(XMODEM) checksum for beacons:
-u2_t os_crc16 (xref2u1_t data, uint len) {
+u2_t os_crc16 (u1_t *data, uint len) {
     u2_t remainder = 0;
     u2_t polynomial = 0x1021;
     for( uint i = 0; i < len; i++ ) {
@@ -161,14 +161,14 @@ static void micB0 (u4_t devaddr, u4_t seqno, int dndir, int len) {
 }
 
 
-static int aes_verifyMic (xref2cu1_t key, u4_t devaddr, u4_t seqno, int dndir, xref2u1_t pdu, int len) {
+static int aes_verifyMic (const u1_t *key, u4_t devaddr, u4_t seqno, int dndir, u1_t *pdu, int len) {
     micB0(devaddr, seqno, dndir, len);
     os_copyMem(AESkey,key,16);
     return os_aes(AES_MIC, pdu, len) == os_rmsbf4(pdu+len);
 }
 
 
-static void aes_appendMic (xref2cu1_t key, u4_t devaddr, u4_t seqno, int dndir, xref2u1_t pdu, int len) {
+static void aes_appendMic (const u1_t *key, u4_t devaddr, u4_t seqno, int dndir, u1_t *pdu, int len) {
     micB0(devaddr, seqno, dndir, len);
     os_copyMem(AESkey,key,16);
     // MSB because of internal structure of AES
@@ -176,25 +176,25 @@ static void aes_appendMic (xref2cu1_t key, u4_t devaddr, u4_t seqno, int dndir, 
 }
 
 
-static void aes_appendMic0 (xref2u1_t pdu, int len) {
+static void aes_appendMic0 (u1_t *pdu, int len) {
     os_getDevKey(AESkey);
     os_wmsbf4(pdu+len, os_aes(AES_MIC|AES_MICNOAUX, pdu, len));  // MSB because of internal structure of AES
 }
 
 
-static int aes_verifyMic0 (xref2u1_t pdu, int len) {
+static int aes_verifyMic0 (u1_t *pdu, int len) {
     os_getDevKey(AESkey);
     return os_aes(AES_MIC|AES_MICNOAUX, pdu, len) == os_rmsbf4(pdu+len);
 }
 
 
-static void aes_encrypt (xref2u1_t pdu, int len) {
+static void aes_encrypt (u1_t *pdu, int len) {
     os_getDevKey(AESkey);
     os_aes(AES_ENC, pdu, len);
 }
 
 
-static void aes_cipher (xref2cu1_t key, u4_t devaddr, u4_t seqno, int dndir, xref2u1_t payload, int len) {
+static void aes_cipher (const u1_t *key, u4_t devaddr, u4_t seqno, int dndir, u1_t *payload, int len) {
     if( len <= 0 )
         return;
     os_clearMem(AESaux, 16);
@@ -207,7 +207,7 @@ static void aes_cipher (xref2cu1_t key, u4_t devaddr, u4_t seqno, int dndir, xre
 }
 
 
-static void aes_sessKeys (u2_t devnonce, xref2cu1_t artnonce, xref2u1_t nwkkey, xref2u1_t artkey) {
+static void aes_sessKeys (u2_t devnonce, const u1_t *artnonce, u1_t *nwkkey, u1_t *artkey) {
     os_clearMem(nwkkey, 16);
     nwkkey[0] = 0x01;
     os_copyMem(nwkkey+1, artnonce, LEN_ARTNONCE+LEN_NETID);
@@ -442,7 +442,7 @@ static void calcBcnRxWindowFromMillis (u1_t ms, bit_t ini) {
 
 #if !defined(LMIC_DISABLE_PING)
 // Setup scheduled RX window (ping/multicast slot)
-static void rxschedInit (xref2rxsched_t rxsched) {
+static void rxschedInit (rxsched_t *rxsched) {
     os_clearMem(AESkey,16);
     os_clearMem(LMIC.frame+8,8);
     os_wlsbf4(LMIC.frame, LMIC.bcninfo.time);
@@ -459,7 +459,7 @@ static void rxschedInit (xref2rxsched_t rxsched) {
 }
 
 
-static bit_t rxschedNext (xref2rxsched_t rxsched, ostime_t cando) {
+static bit_t rxschedNext (rxsched_t *rxsched, ostime_t cando) {
   again:
     if( rxsched->rxtime - cando >= 0 )
         return 1;
@@ -588,7 +588,7 @@ static void initDefaultChannels (bit_t join) {
 bit_t LMIC_setupBand (u1_t bandidx, s1_t txpow, u2_t txcap) {
     if( bandidx > BAND_AUX ) return 0;
     //band_t* b = &LMIC.bands[bandidx];
-    xref2band_t b = &LMIC.bands[bandidx];
+    band_t *b = &LMIC.bands[bandidx];
     b->txpow = txpow;
     b->txcap = txcap;
     b->avail = os_getTime();
@@ -623,7 +623,7 @@ void LMIC_disableChannel (u1_t channel) {
     LMIC.channelMap &= ~(1<<channel);
 }
 
-static u4_t convFreq (xref2u1_t ptr) {
+static u4_t convFreq (u1_t *ptr) {
     u4_t freq = (os_rlsbf4(ptr-1) >> 8) * 100;
     if( freq < EU868_FREQ_MIN || freq > EU868_FREQ_MAX )
         freq = 0;
@@ -648,7 +648,7 @@ static void updateTx (ostime_t txbeg) {
     // Update global/band specific duty cycle stats
     ostime_t airtime = calcAirTime(LMIC.rps, LMIC.dataLen);
     // Update channel/global duty cycle stats
-    xref2band_t band = &LMIC.bands[freq & 0x3];
+    band_t *band = &LMIC.bands[freq & 0x3];
     LMIC.freq  = freq & ~(u4_t)3;
     LMIC.txpow = band->txpow;
     band->avail = txbeg + airtime * band->txcap;
@@ -778,7 +778,7 @@ static void initDefaultChannels (void) {
     LMIC.channelMap[4] = 0x00FF;
 }
 
-static u4_t convFreq (xref2u1_t ptr) {
+static u4_t convFreq (u1_t *ptr) {
     u4_t freq = (os_rlsbf4(ptr-1) >> 8) * 100;
     if( freq < US915_FREQ_MIN || freq > US915_FREQ_MAX )
         freq = 0;
@@ -957,7 +957,7 @@ static ostime_t nextJoinState (void) {
 #endif
 
 
-static void runEngineUpdate (xref2osjob_t osjob) {
+static void runEngineUpdate (osjob_t *osjob) {
     engineUpdate();
 }
 
@@ -971,7 +971,7 @@ static void reportEvent (ev_t ev) {
 }
 
 
-static void runReset (xref2osjob_t osjob) {
+static void runReset (osjob_t *osjob) {
     // Disable session
     LMIC_reset();
 #if !defined(LMIC_DISABLE_JOIN)
@@ -1019,7 +1019,7 @@ static void stateJustJoined (void) {
 // Decode beacon  - do not overwrite bcninfo unless we have a match!
 static int decodeBeacon (void) {
     ASSERT(LMIC.dataLen == LEN_BCN); // implicit header RX guarantees this
-    xref2u1_t d = LMIC.frame;
+    u1_t *d = LMIC.frame;
     if(
 #if LMIC_EU686
         d[OFF_BCN_CRC1] != (u1_t)os_crc16(d,OFF_BCN_CRC1)
@@ -1055,7 +1055,7 @@ static int decodeBeacon (void) {
 
 
 static bit_t decodeFrame (void) {
-    xref2u1_t d = LMIC.frame;
+    u1_t *d = LMIC.frame;
     u1_t hdr    = d[0];
     u1_t ftype  = hdr & HDR_FTYPE;
     int  dlen   = LMIC.dataLen;
@@ -1159,7 +1159,7 @@ static bit_t decodeFrame (void) {
     int m = LMIC.rssi - RSSI_OFF - getSensitivity(LMIC.rps);
     LMIC.margin = m < 0 ? 0 : m > 254 ? 254 : m;
 
-    xref2u1_t opts = &d[OFF_DAT_OPTS];
+    u1_t *opts = &d[OFF_DAT_OPTS];
     int oidx = 0;
     while( oidx < olen ) {
         switch( opts[oidx] ) {
@@ -1447,7 +1447,7 @@ static void txDone (ostime_t delay, osjobcb_t func) {
 
 
 #if !defined(LMIC_DISABLE_JOIN)
-static void onJoinFailed (xref2osjob_t osjob) {
+static void onJoinFailed (osjob_t *osjob) {
     // Notify app - must call LMIC_reset() to stop joining
     // otherwise join procedure continues.
     reportEvent(EV_JOIN_FAILED);
@@ -1561,31 +1561,31 @@ static bit_t processJoinAccept (void) {
 }
 
 
-static void processRx2Jacc (xref2osjob_t osjob) {
+static void processRx2Jacc (osjob_t *osjob) {
     if( LMIC.dataLen == 0 )
         LMIC.txrxFlags = 0;  // nothing in 1st/2nd DN slot
     processJoinAccept();
 }
 
 
-static void setupRx2Jacc (xref2osjob_t osjob) {
+static void setupRx2Jacc (osjob_t *osjob) {
     LMIC.osjob.func = FUNC_ADDR(processRx2Jacc);
     setupRx2();
 }
 
 
-static void processRx1Jacc (xref2osjob_t osjob) {
+static void processRx1Jacc (osjob_t *osjob) {
     if( LMIC.dataLen == 0 || !processJoinAccept() )
         schedRx12(DELAY_JACC2_osticks, FUNC_ADDR(setupRx2Jacc), LMIC.dn2Dr);
 }
 
 
-static void setupRx1Jacc (xref2osjob_t osjob) {
+static void setupRx1Jacc (osjob_t *osjob) {
     setupRx1(FUNC_ADDR(processRx1Jacc));
 }
 
 
-static void jreqDone (xref2osjob_t osjob) {
+static void jreqDone (osjob_t *osjob) {
     txDone(DELAY_JACC1_osticks, FUNC_ADDR(setupRx1Jacc));
 }
 
@@ -1596,7 +1596,7 @@ static void jreqDone (xref2osjob_t osjob) {
 // Fwd decl.
 static bit_t processDnData(void);
 
-static void processRx2DnData (xref2osjob_t osjob) {
+static void processRx2DnData (osjob_t *osjob) {
     if( LMIC.dataLen == 0 ) {
         LMIC.txrxFlags = 0;  // nothing in 1st/2nd DN slot
         // It could be that the gateway *is* sending a reply, but we
@@ -1610,24 +1610,24 @@ static void processRx2DnData (xref2osjob_t osjob) {
 }
 
 
-static void setupRx2DnData (xref2osjob_t osjob) {
+static void setupRx2DnData (osjob_t *osjob) {
     LMIC.osjob.func = FUNC_ADDR(processRx2DnData);
     setupRx2();
 }
 
 
-static void processRx1DnData (xref2osjob_t osjob) {
+static void processRx1DnData (osjob_t *osjob) {
     if( LMIC.dataLen == 0 || !processDnData() )
         schedRx12(sec2osticks(LMIC.rxDelay +(int)DELAY_EXTDNW2), FUNC_ADDR(setupRx2DnData), LMIC.dn2Dr);
 }
 
 
-static void setupRx1DnData (xref2osjob_t osjob) {
+static void setupRx1DnData (osjob_t *osjob) {
     setupRx1(FUNC_ADDR(processRx1DnData));
 }
 
 
-static void updataDone (xref2osjob_t osjob) {
+static void updataDone (osjob_t *osjob) {
     txDone(sec2osticks(LMIC.rxDelay), FUNC_ADDR(setupRx1DnData));
 }
 
@@ -1765,7 +1765,7 @@ static void buildDataFrame (void) {
 
 #if !defined(LMIC_DISABLE_BEACONS)
 // Callback from HAL during scan mode or when job timer expires.
-static void onBcnRx (xref2osjob_t job) {
+static void onBcnRx (osjob_t *job) {
     // If we arrive via job timer make sure to put radio to rest.
     os_radio(RADIO_RST);
     os_clearCallback(&LMIC.osjob);
@@ -1865,7 +1865,7 @@ void LMIC_disableTracking (void) {
 static void buildJoinRequest (u1_t ftype) {
     // Do not use pendTxData since we might have a pending
     // user level frame in there. Use RX holding area instead.
-    xref2u1_t d = LMIC.frame;
+    u1_t *d = LMIC.frame;
     d[OFF_JR_HDR] = ftype;
     os_getArtEui(d + OFF_JR_ARTEUI);
     os_getDevEui(d + OFF_JR_DEVEUI);
@@ -1885,7 +1885,7 @@ static void buildJoinRequest (u1_t ftype) {
     DO_DEVDB(LMIC.devNonce,devNonce);
 }
 
-static void startJoining (xref2osjob_t osjob) {
+static void startJoining (osjob_t *osjob) {
     reportEvent(EV_JOINING);
 }
 
@@ -1918,7 +1918,7 @@ bit_t LMIC_startJoining (void) {
 // ================================================================================
 
 #if !defined(LMIC_DISABLE_PING)
-static void processPingRx (xref2osjob_t osjob) {
+static void processPingRx (osjob_t *osjob) {
     if( LMIC.dataLen != 0 ) {
         LMIC.txrxFlags = TXRX_PING;
         if( decodeFrame() ) {
@@ -1999,7 +1999,7 @@ static bit_t processDnData (void) {
 
 
 #if !defined(LMIC_DISABLE_BEACONS)
-static void processBeacon (xref2osjob_t osjob) {
+static void processBeacon (osjob_t *osjob) {
     ostime_t lasttx = LMIC.bcninfo.txtime;   // save here - decodeBeacon might overwrite
     u1_t flags = LMIC.bcninfo.flags;
     ev_t ev;
@@ -2062,7 +2062,7 @@ static void processBeacon (xref2osjob_t osjob) {
 }
 
 
-static void startRxBcn (xref2osjob_t osjob) {
+static void startRxBcn (osjob_t *osjob) {
     LMIC.osjob.func = FUNC_ADDR(processBeacon);
     os_radio(RADIO_RX);
 }
@@ -2070,7 +2070,7 @@ static void startRxBcn (xref2osjob_t osjob) {
 
 
 #if !defined(LMIC_DISABLE_PING)
-static void startRxPing (xref2osjob_t osjob) {
+static void startRxPing (osjob_t *osjob) {
     LMIC.osjob.func = FUNC_ADDR(processPingRx);
     os_radio(RADIO_RX);
 }
@@ -2292,7 +2292,7 @@ void LMIC_reset (void) {
     os_radio(RADIO_RST);
     os_clearCallback(&LMIC.osjob);
 
-    os_clearMem((xref2u1_t)&LMIC,SIZEOFEXPR(LMIC));
+    os_clearMem((u1_t*)&LMIC,SIZEOFEXPR(LMIC));
     LMIC.devaddr      =  0;
     LMIC.devNonce     =  os_getRndU2();
     LMIC.opmode       =  OP_NONE;
@@ -2346,10 +2346,10 @@ void LMIC_setTxData (void) {
 
 
 //
-int LMIC_setTxData2 (u1_t port, xref2u1_t data, u1_t dlen, u1_t confirmed) {
+int LMIC_setTxData2 (u1_t port, u1_t *data, u1_t dlen, u1_t confirmed) {
     if( dlen > SIZEOFEXPR(LMIC.pendTxData) )
         return -2;
-    if( data != (xref2u1_t)0 )
+    if( data != (u1_t*)0)
         os_copyMem(LMIC.pendTxData, data, dlen);
     LMIC.pendTxConf = confirmed;
     LMIC.pendTxPort = port;
@@ -2386,12 +2386,12 @@ void LMIC_tryRejoin (void) {
 //!     If NULL the caller has copied the key into `LMIC.nwkKey` before.
 //! \param artKey  the 16 byte application router session key used for message confidentiality.
 //!     If NULL the caller has copied the key into `LMIC.artKey` before.
-void LMIC_setSession (u4_t netid, devaddr_t devaddr, xref2u1_t nwkKey, xref2u1_t artKey) {
+void LMIC_setSession (u4_t netid, devaddr_t devaddr, u1_t *nwkKey, u1_t *artKey) {
     LMIC.netid = netid;
     LMIC.devaddr = devaddr;
-    if( nwkKey != (xref2u1_t)0 )
+    if( nwkKey != (u1_t*)0)
         os_copyMem(LMIC.nwkKey, nwkKey, 16);
-    if( artKey != (xref2u1_t)0 )
+    if( artKey != (u1_t*)0)
         os_copyMem(LMIC.artKey, artKey, 16);
 
 #if defined(LMIC_EU686)
