@@ -75,7 +75,6 @@ struct band_t {
     u1_t     lastchnl;  // last used channel
     ostime_t avail;     // channel is blocked until this time
 };
-TYPEDEF_xref2band_t; //!< \internal
 
 #elif defined(LMIC_US915)  // US915 spectrum =================================================
 
@@ -100,7 +99,6 @@ struct rxsched_t {
     ostime_t rxtime;    // start of next spot
     u4_t     freq;
 };
-TYPEDEF_xref2rxsched_t;  //!< \internal
 #endif // !LMIC_DISABLE_PING
 
 
@@ -308,7 +306,7 @@ void  LMIC_init         (void);
 void  LMIC_reset        (void);
 void  LMIC_clrTxData    (void);
 void  LMIC_setTxData    (void);
-int   LMIC_setTxData2   (u1_t port, xref2u1_t data, u1_t dlen, u1_t confirmed);
+int   LMIC_setTxData2   (u1_t port, u1_t *data, u1_t dlen, u1_t confirmed);
 void  LMIC_sendAlive    (void);
 
 #if !defined(LMIC_DISABLE_BEACONS)
@@ -324,7 +322,7 @@ void  LMIC_setPingable   (u1_t intvExp);
 void  LMIC_tryRejoin     (void);
 #endif
 
-void LMIC_setSession (u4_t netid, devaddr_t devaddr, xref2u1_t nwkKey, xref2u1_t artKey);
+void LMIC_setSession (u4_t netid, devaddr_t devaddr, u1_t *nwkKey, u1_t *artKey);
 void LMIC_setLinkCheckMode (bit_t enabled);
 void LMIC_setClockError(u2_t error);
 

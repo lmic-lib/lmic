@@ -79,13 +79,6 @@ typedef      struct band_t band_t;
 typedef   struct chnldef_t chnldef_t;
 typedef   struct rxsched_t rxsched_t;
 typedef   struct bcninfo_t bcninfo_t;
-typedef        const u1_t* xref2cu1_t;
-typedef              u1_t* xref2u1_t;
-#define TYPEDEF_xref2rps_t     typedef         rps_t* xref2rps_t
-#define TYPEDEF_xref2rxsched_t typedef     rxsched_t* xref2rxsched_t
-#define TYPEDEF_xref2chnldef_t typedef     chnldef_t* xref2chnldef_t
-#define TYPEDEF_xref2band_t    typedef        band_t* xref2band_t
-#define TYPEDEF_xref2osjob_t   typedef       osjob_t* xref2osjob_t
 
 #define SIZEOFEXPR(x) sizeof(x)
 
@@ -147,28 +140,26 @@ struct osjob_t {
     ostime_t deadline;
     osjobcb_t  func;
 };
-TYPEDEF_xref2osjob_t;
-
 
 #ifndef HAS_os_calls
 
 #ifndef os_getDevKey
-void os_getDevKey (xref2u1_t buf);
+void os_getDevKey (u1_t *buf);
 #endif
 #ifndef os_getArtEui
-void os_getArtEui (xref2u1_t buf);
+void os_getArtEui (u1_t *buf);
 #endif
 #ifndef os_getDevEui
-void os_getDevEui (xref2u1_t buf);
+void os_getDevEui (u1_t *buf);
 #endif
 #ifndef os_setCallback
-void os_setCallback (xref2osjob_t job, osjobcb_t cb);
+void os_setCallback (osjob_t *job, osjobcb_t cb);
 #endif
 #ifndef os_setTimedCallback
-void os_setTimedCallback (xref2osjob_t job, ostime_t time, osjobcb_t cb);
+void os_setTimedCallback (osjob_t *job, ostime_t time, osjobcb_t cb);
 #endif
 #ifndef os_clearCallback
-void os_clearCallback (xref2osjob_t job);
+void os_clearCallback (osjob_t *job);
 #endif
 #ifndef os_getTime
 ostime_t os_getTime (void);
@@ -185,27 +176,27 @@ u1_t os_getBattLevel (void);
 
 #ifndef os_rlsbf4
 //! Read 32-bit quantity from given pointer in little endian byte order.
-u4_t os_rlsbf4 (xref2cu1_t buf);
+u4_t os_rlsbf4 (const u1_t *buf);
 #endif
 #ifndef os_wlsbf4
 //! Write 32-bit quntity into buffer in little endian byte order.
-void os_wlsbf4 (xref2u1_t buf, u4_t value);
+void os_wlsbf4 (u1_t *buf, u4_t value);
 #endif
 #ifndef os_rmsbf4
 //! Read 32-bit quantity from given pointer in big endian byte order.
-u4_t os_rmsbf4 (xref2cu1_t buf);
+u4_t os_rmsbf4 (const u1_t *buf);
 #endif
 #ifndef os_wmsbf4
 //! Write 32-bit quntity into buffer in big endian byte order.
-void os_wmsbf4 (xref2u1_t buf, u4_t value);
+void os_wmsbf4 (u1_t *buf, u4_t value);
 #endif
 #ifndef os_rlsbf2
 //! Read 16-bit quantity from given pointer in little endian byte order.
-u2_t os_rlsbf2 (xref2cu1_t buf);
+u2_t os_rlsbf2 (const u1_t *buf);
 #endif
 #ifndef os_wlsbf2
 //! Write 16-bit quntity into buffer in little endian byte order.
-void os_wlsbf2 (xref2u1_t buf, u2_t value);
+void os_wlsbf2 (u1_t *buf, u2_t value);
 #endif
 
 //! Get random number (default impl for u2_t).
@@ -213,7 +204,7 @@ void os_wlsbf2 (xref2u1_t buf, u2_t value);
 #define os_getRndU2() ((u2_t)((os_getRndU1()<<8)|os_getRndU1()))
 #endif
 #ifndef os_crc16
-u2_t os_crc16 (xref2u1_t d, uint len);
+u2_t os_crc16 (u1_t *d, uint len);
 #endif
 
 #endif // !HAS_os_calls
@@ -295,11 +286,11 @@ u2_t os_crc16 (xref2u1_t d, uint len);
 #define AES_MICNOAUX  0x08
 #endif
 #ifndef AESkey  // if AESkey is defined as macro all other values must be too
-extern xref2u1_t AESkey;
-extern xref2u1_t AESaux;
+extern u1_t *AESkey;
+extern u1_t *AESaux;
 #endif
 #ifndef os_aes
-u4_t os_aes (u1_t mode, xref2u1_t buf, u2_t len);
+u4_t os_aes (u1_t mode, u1_t *buf, u2_t len);
 #endif
 
 #ifdef __cplusplus

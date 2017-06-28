@@ -157,7 +157,7 @@ typedef pref2u1_t pref_t;
 
 pref2u1_t hw_flash_init();
 void hal_erase_p (pref2u1_t ppdst, u2_t len, u1_t itemsize);
-void hal_copy_x2p (pref2u1_t ppdst, u2_t len, xref2u1_t xpsrc);
+void hal_copy_x2p (pref2u1_t ppdst, u2_t len, u1_t *xpsrc);
 void hal_wrp_u1 (pref2u1_t ppdst, u1_t value);
 void hal_wrp_u2 (pref2u2_t ppdst, u2_t value);
 
