@@ -115,7 +115,7 @@ u4_t hal_ticks () {
     // miss a significant part of its values if not corrected. To fix
     // this, the "overflow" serves as an overflow area for the micros()
     // counter. It consists of three parts:
-    //  - The US_PER_OSTICK upper bits are effectively an extension for
+    //  - The LMIC_US_PER_OSTICK upper bits are effectively an extension for
     //    the micros() counter and are added to the result of this
     //    function.
     //  - The next bit overlaps with the most significant bit of
@@ -131,13 +131,13 @@ u4_t hal_ticks () {
     // efficient on AVR (which only has 1-bit shifts).
     static uint8_t overflow = 0;
 
-    // Scaled down timestamp. The top US_PER_OSTICK_EXPONENT bits are 0,
+    // Scaled down timestamp. The top LMIC_US_PER_OSTICK_EXPONENT bits are 0,
     // the others will be the lower bits of our return value.
-    uint32_t scaled = micros() >> US_PER_OSTICK_EXPONENT;
+    uint32_t scaled = micros() >> LMIC_US_PER_OSTICK_EXPONENT;
     // Most significant byte of scaled
     uint8_t msb = scaled >> 24;
     // Mask pointing to the overlapping bit in msb and overflow.
-    const uint8_t mask = (1 << (7 - US_PER_OSTICK_EXPONENT));
+    const uint8_t mask = (1 << (7 - LMIC_US_PER_OSTICK_EXPONENT));
     // Update overflow. If the overlapping bit is different
     // between overflow and msb, it is added to the stored value,
     // so the overlapping bit becomes equal again and, if it changed
@@ -151,7 +151,7 @@ u4_t hal_ticks () {
 
     // 0 leads to correct, but overly complex code (it could just return
     // micros() unmodified), 8 leaves no room for the overlapping bit.
-    static_assert(US_PER_OSTICK_EXPONENT > 0 && US_PER_OSTICK_EXPONENT < 8, "Invalid US_PER_OSTICK_EXPONENT value");
+    static_assert(LMIC_US_PER_OSTICK_EXPONENT > 0 && LMIC_US_PER_OSTICK_EXPONENT < 8, "Invalid LMIC_US_PER_OSTICK_EXPONENT value");
 }
 
 // Returns the number of ticks until time. Negative values indicate that
@@ -164,12 +164,12 @@ void hal_waitUntil (u4_t time) {
     s4_t delta = delta_time(time);
     // From delayMicroseconds docs: Currently, the largest value that
     // will produce an accurate delay is 16383.
-    while (delta > (16000 / US_PER_OSTICK)) {
+    while (delta > (16000 / LMIC_US_PER_OSTICK)) {
         delay(16);
-        delta -= (16000 / US_PER_OSTICK);
+        delta -= (16000 / LMIC_US_PER_OSTICK);
     }
     if (delta > 0)
-        delayMicroseconds(delta * US_PER_OSTICK);
+        delayMicroseconds(delta * LMIC_US_PER_OSTICK);
 }
 
 // check and rewind for target time

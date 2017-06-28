@@ -188,9 +188,9 @@
 #define LORA_MAC_PREAMBLE                  0x34
 
 #define RXLORA_RXMODE_RSSI_REG_MODEM_CONFIG1 0x0A
-#ifdef CFG_sx1276_radio
+#ifdef LMIC_SX1276
 #define RXLORA_RXMODE_RSSI_REG_MODEM_CONFIG2 0x70
-#elif CFG_sx1272_radio
+#elif LMIC_SX1272
 #define RXLORA_RXMODE_RSSI_REG_MODEM_CONFIG2 0x74
 #endif
 
@@ -268,12 +268,12 @@
 static u1_t randbuf[16];
 
 
-#ifdef CFG_sx1276_radio
+#ifdef LMIC_SX1276
 #define LNA_RX_GAIN (0x20|0x1)
-#elif CFG_sx1272_radio
+#elif LMIC_SX1272
 #define LNA_RX_GAIN (0x20|0x03)
 #else
-#error Missing CFG_sx1272_radio/CFG_sx1276_radio
+#error Missing LMIC_SX1272/LMIC_SX1276
 #endif
 
 
@@ -316,7 +316,7 @@ static void opmode (u1_t mode) {
 
 static void opmodeLora() {
     u1_t u = OPMODE_LORA;
-#ifdef CFG_sx1276_radio
+#ifdef LMIC_SX1276
     u |= 0x8;   // TBD: sx1276 high freq
 #endif
     writeReg(RegOpMode, u);
@@ -324,7 +324,7 @@ static void opmodeLora() {
 
 static void opmodeFSK() {
     u1_t u = 0;
-#ifdef CFG_sx1276_radio
+#ifdef LMIC_SX1276
     u |= 0x8;   // TBD: sx1276 high freq
 #endif
     writeReg(RegOpMode, u);
@@ -334,7 +334,7 @@ static void opmodeFSK() {
 static void configLoraModem () {
     sf_t sf = getSf(LMIC.rps);
 
-#ifdef CFG_sx1276_radio
+#ifdef LMIC_SX1276
         u1_t mc1 = 0, mc2 = 0, mc3 = 0;
 
         switch (getBw(LMIC.rps)) {
@@ -371,7 +371,7 @@ static void configLoraModem () {
             mc3 |= SX1276_MC3_LOW_DATA_RATE_OPTIMIZE;
         }
         writeReg(LORARegModemConfig3, mc3);
-#elif CFG_sx1272_radio
+#elif LMIC_SX1272
         u1_t mc1 = (getBw(LMIC.rps)<<6);
 
         switch( getCr(LMIC.rps) ) {
@@ -406,8 +406,8 @@ static void configLoraModem () {
 #endif
 
 #else
-#error Missing CFG_sx1272_radio/CFG_sx1276_radio
-#endif /* CFG_sx1272_radio */
+#error Missing LMIC_SX1272/LMIC_SX1276
+#endif /* LMIC_SX1272 */
 }
 
 static void configChannel () {
@@ -421,7 +421,7 @@ static void configChannel () {
 
 
 static void configPower () {
-#ifdef CFG_sx1276_radio
+#ifdef LMIC_SX1276
     // no boost used for now
     s1_t pw = (s1_t)LMIC.txpow;
     if(pw >= 17) {
@@ -433,7 +433,7 @@ static void configPower () {
     writeReg(RegPaConfig, (u1_t)(0x80|(pw&0xf)));
     writeReg(RegPaDac, readReg(RegPaDac)|0x4);
 
-#elif CFG_sx1272_radio
+#elif LMIC_SX1272
     // set PA config (2-17 dBm using PA_BOOST)
     s1_t pw = (s1_t)LMIC.txpow;
     if(pw > 17) {
@@ -443,8 +443,8 @@ static void configPower () {
     }
     writeReg(RegPaConfig, (u1_t)(0x80|(pw-2)));
 #else
-#error Missing CFG_sx1272_radio/CFG_sx1276_radio
-#endif /* CFG_sx1272_radio */
+#error Missing LMIC_SX1272/LMIC_SX1276
+#endif /* LMIC_SX1272 */
 }
 
 static void txfsk () {
@@ -701,7 +701,7 @@ void radio_init () {
     hal_disableIRQs();
 
     // manually reset radio
-#ifdef CFG_sx1276_radio
+#ifdef LMIC_SX1276
     hal_pin_rst(0); // drive RST pin low
 #else
     hal_pin_rst(1); // drive RST pin high
@@ -714,12 +714,12 @@ void radio_init () {
 
     // some sanity checks, e.g., read version number
     u1_t v = readReg(RegVersion);
-#ifdef CFG_sx1276_radio
+#ifdef LMIC_SX1276
     ASSERT(v == 0x12 );
-#elif CFG_sx1272_radio
+#elif LMIC_SX1272
     ASSERT(v == 0x22);
 #else
-#error Missing CFG_sx1272_radio/CFG_sx1276_radio
+#error Missing LMIC_SX1272/LMIC_SX1276
 #endif
     // seed 15-byte randomness via noise rssi
     rxlora(RXMODE_RSSI);

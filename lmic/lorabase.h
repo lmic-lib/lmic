@@ -74,7 +74,7 @@ enum { BCN_RESERVE_us    = 2120000 };
 enum { BCN_GUARD_us      = 3000000 };
 enum { BCN_SLOT_SPAN_us  =   30000 };
 
-#if defined(CFG_eu868) // ==============================================
+#if defined(LMIC_EU686) // ==============================================
 
 enum _dr_eu868_t { DR_SF12=0, DR_SF11, DR_SF10, DR_SF9, DR_SF8, DR_SF7, DR_SF7B, DR_FSK, DR_NONE };
 enum { DR_DFLTMIN = DR_SF7 };
@@ -122,7 +122,7 @@ enum {
     LEN_BCN          = 17
 };
 
-#elif defined(CFG_us915)  // =========================================
+#elif defined(LMIC_US915)  // =========================================
 
 enum _dr_us915_t { DR_SF10=0, DR_SF9, DR_SF8, DR_SF7, DR_SF8C, DR_NONE,
                    // Devices behind a router:
@@ -311,7 +311,7 @@ enum {
     MCMD_LADR_POW_MASK   = 0x0F,
     MCMD_LADR_DR_SHIFT   = 4,
     MCMD_LADR_POW_SHIFT  = 0,
-#if defined(CFG_eu868)
+#if defined(LMIC_EU686)
     MCMD_LADR_SF12      = DR_SF12<<4,
     MCMD_LADR_SF11      = DR_SF11<<4,
     MCMD_LADR_SF10      = DR_SF10<<4,
@@ -327,7 +327,7 @@ enum {
     MCMD_LADR_8dBm      = 3,
     MCMD_LADR_5dBm      = 4,
     MCMD_LADR_2dBm      = 5,
-#elif defined(CFG_us915)
+#elif defined(LMIC_US915)
     MCMD_LADR_SF10      = DR_SF10<<4,
     MCMD_LADR_SF9       = DR_SF9 <<4,
     MCMD_LADR_SF8       = DR_SF8 <<4,

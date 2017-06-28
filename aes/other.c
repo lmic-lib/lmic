@@ -29,7 +29,7 @@
 
 #include "../lmic/oslmic.h"
 
-#if !defined(USE_ORIGINAL_AES)
+#if !defined(LMIC_USE_ORIGINAL_AES)
 
 // This should be defined elsewhere
 void lmic_aes_encrypt(u1_t *data, u1_t *key);
@@ -142,4 +142,4 @@ u4_t os_aes (u1_t mode, xref2u1_t buf, u2_t len) {
     return 0;
 }
 
-#endif // !defined(USE_ORIGINAL_AES)
+#endif // !defined(LMIC_USE_ORIGINAL_AES)

@@ -29,7 +29,7 @@
 #include "lmic.h"
 #include <stdio.h>
 
-#if defined(DISABLE_BEACONS) && !defined(DISABLE_PING)
+#if defined(LMIC_DISABLE_BEACONS) && !defined(LMIC_DISABLE_PING)
 #error Ping needs beacon tracking
 #endif
 
@@ -51,10 +51,10 @@
 #define BCN_GUARD_osticks      ms2osticks(BCN_GUARD_ms)
 #define BCN_WINDOW_osticks     ms2osticks(BCN_WINDOW_ms)
 #define AIRTIME_BCN_osticks    us2osticks(AIRTIME_BCN)
-#if defined(CFG_eu868)
+#if defined(LMIC_EU686)
 #define DNW2_SAFETY_ZONE       ms2osticks(3000)
 #endif
-#if defined(CFG_us915)
+#if defined(LMIC_US915)
 #define DNW2_SAFETY_ZONE       ms2osticks(750)
 #endif
 
@@ -228,7 +228,7 @@ static void aes_sessKeys (u2_t devnonce, xref2cu1_t artnonce, xref2u1_t nwkkey, 
 // ================================================================================
 // BEG LORA
 
-#if defined(CFG_eu868) // ========================================
+#if defined(LMIC_EU686) // ========================================
 
 #define maxFrameLen(dr) ((dr)<=DR_SF9 ? TABLE_GET_U1(maxFrameLens, (dr)) : 0xFF)
 CONST_TABLE(u1_t, maxFrameLens) [] = { 64,64,64,123 };
@@ -251,7 +251,7 @@ static CONST_TABLE(s1_t, TXPOWLEVELS)[] = {
 };
 #define pow2dBm(mcmd_ladr_p1) (TABLE_GET_S1(TXPOWLEVELS, (mcmd_ladr_p1&MCMD_LADR_POW_MASK)>>MCMD_LADR_POW_SHIFT))
 
-#elif defined(CFG_us915) // ========================================
+#elif defined(LMIC_US915) // ========================================
 
 #define maxFrameLen(dr) ((dr)<=DR_SF11CR ? TABLE_GET_U1(maxFrameLens, (dr)) : 0xFF)
 CONST_TABLE(u1_t, maxFrameLens) [] = { 24,66,142,255,255,255,255,255,  66,142 };
@@ -300,7 +300,7 @@ ostime_t calcAirTime (rps_t rps, u1_t plen) {
     u1_t sf = getSf(rps);  // 0=FSK, 1..6 = SF7..12
     if( sf == FSK ) {
         return (plen+/*preamble*/5+/*syncword*/3+/*len*/1+/*crc*/2) * /*bits/byte*/8
-            * (s4_t)OSTICKS_PER_SEC / /*kbit/s*/50000;
+            * (s4_t)LMIC_OSTICKS_PER_SEC / /*kbit/s*/50000;
     }
     u1_t sfx = 4*(sf+(7-SF7));
     u1_t q = sfx - (sf >= SF11 ? 8 : 0);
@@ -318,7 +318,7 @@ ostime_t calcAirTime (rps_t rps, u1_t plen) {
     //      500000 = 15625 * 2^5
     // sf = 7..12
     //
-    // osticks =  tmp * OSTICKS_PER_SEC * 1<<sf / bw
+    // osticks =  tmp * LMIC_OSTICKS_PER_SEC * 1<<sf / bw
     //
     // 3 => counter reduced divisor 125000/8 => 15625
     // 2 => counter 2 shift on tmp
@@ -330,7 +330,7 @@ ostime_t calcAirTime (rps_t rps, u1_t plen) {
         sfx = 4;
     }
     // Need 32bit arithmetic for this last step
-    return (((ostime_t)tmp << sfx) * OSTICKS_PER_SEC + div/2) / div;
+    return (((ostime_t)tmp << sfx) * LMIC_OSTICKS_PER_SEC + div/2) / div;
 }
 
 extern inline rps_t updr2rps (dr_t dr);
@@ -383,7 +383,7 @@ static CONST_TABLE(u1_t, DRADJUST)[2+TXCONF_ATTEMPTS] = {
 // Times for half symbol per DR
 // Per DR table to minimize rounding errors
 static CONST_TABLE(ostime_t, DR2HSYM_osticks)[] = {
-#if defined(CFG_eu868)
+#if defined(LMIC_EU686)
 #define dr2hsym(dr) (TABLE_GET_OSTIME(DR2HSYM_osticks, (dr)))
     us2osticksRound(128<<7),  // DR_SF12
     us2osticksRound(128<<6),  // DR_SF11
@@ -393,7 +393,7 @@ static CONST_TABLE(ostime_t, DR2HSYM_osticks)[] = {
     us2osticksRound(128<<2),  // DR_SF7
     us2osticksRound(128<<1),  // DR_SF7B
     us2osticksRound(80)       // FSK -- not used (time for 1/2 byte)
-#elif defined(CFG_us915)
+#elif defined(LMIC_US915)
 #define dr2hsym(dr) (TABLE_GET_OSTIME(DR2HSYM_osticks, (dr)&7))  // map DR_SFnCR -> 0-6
     us2osticksRound(128<<5),  // DR_SF10   DR_SF12CR
     us2osticksRound(128<<4),  // DR_SF9    DR_SF11CR
@@ -405,7 +405,7 @@ static CONST_TABLE(ostime_t, DR2HSYM_osticks)[] = {
 };
 
 
-#if !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_BEACONS)
 static ostime_t calcRxWindow (u1_t secs, dr_t dr) {
     ostime_t rxoff, err;
     if( secs==0 ) {
@@ -437,10 +437,10 @@ static void calcBcnRxWindowFromMillis (u1_t ms, bit_t ini) {
     LMIC.bcnRxsyms = MINRX_SYMS + ms2osticksCeil(ms) / hsym;
     LMIC.bcnRxtime = LMIC.bcninfo.txtime + BCN_INTV_osticks - (LMIC.bcnRxsyms-PAMBL_SYMS) * hsym;
 }
-#endif // !DISABLE_BEACONS
+#endif // !LMIC_DISABLE_BEACONS
 
 
-#if !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_PING)
 // Setup scheduled RX window (ping/multicast slot)
 static void rxschedInit (xref2rxsched_t rxsched) {
     os_clearMem(AESkey,16);
@@ -475,16 +475,16 @@ static bit_t rxschedNext (xref2rxsched_t rxsched, ostime_t cando) {
     rxsched->rxsyms = LMIC.rxsyms;
     goto again;
 }
-#endif // !DISABLE_PING)
+#endif // !LMIC_DISABLE_PING)
 
 
 static ostime_t rndDelay (u1_t secSpan) {
     u2_t r = os_getRndU2();
     ostime_t delay = r;
-    if( delay > OSTICKS_PER_SEC )
-        delay = r % (u2_t)OSTICKS_PER_SEC;
+    if( delay > LMIC_OSTICKS_PER_SEC )
+        delay = r % (u2_t)LMIC_OSTICKS_PER_SEC;
     if( secSpan > 0 )
-        delay += ((u1_t)r % secSpan) * OSTICKS_PER_SEC;
+        delay += ((u1_t)r % secSpan) * LMIC_OSTICKS_PER_SEC;
     return delay;
 }
 
@@ -528,7 +528,7 @@ static void setDrTxpow (u1_t reason, u1_t dr, s1_t pow) {
 }
 
 
-#if !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_PING)
 void LMIC_stopPingable (void) {
     LMIC.opmode &= ~(OP_PINGABLE|OP_PINGINI);
 }
@@ -544,9 +544,9 @@ void LMIC_setPingable (u1_t intvExp) {
         LMIC_enableTracking(0);
 }
 
-#endif // !DISABLE_PING
+#endif // !LMIC_DISABLE_PING
 
-#if defined(CFG_eu868)
+#if defined(LMIC_EU686)
 // ================================================================================
 //
 // BEG: EU868 related stuff
@@ -697,17 +697,17 @@ static ostime_t nextTx (ostime_t now) {
 }
 
 
-#if !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_BEACONS)
 static void setBcnRxParams (void) {
     LMIC.dataLen = 0;
     LMIC.freq = LMIC.channelFreq[LMIC.bcnChnl] & ~(u4_t)3;
     LMIC.rps  = setIh(setNocrc(dndr2rps((dr_t)DR_BCN),1),LEN_BCN);
 }
-#endif // !DISABLE_BEACONS
+#endif // !LMIC_DISABLE_BEACONS
 
 #define setRx1Params() /*LMIC.freq/rps remain unchanged*/
 
-#if !defined(DISABLE_JOIN)
+#if !defined(LMIC_DISABLE_JOIN)
 static void initJoinLoop (void) {
 #if CFG_TxContinuousMode
   LMIC.txChnl = 0;
@@ -759,13 +759,13 @@ static ostime_t nextJoinState (void) {
     // 1 - triggers EV_JOIN_FAILED event
     return failed;
 }
-#endif // !DISABLE_JOIN
+#endif // !LMIC_DISABLE_JOIN
 
 //
 // END: EU868 related stuff
 //
 // ================================================================================
-#elif defined(CFG_us915)
+#elif defined(LMIC_US915)
 // ================================================================================
 //
 // BEG: US915 related stuff
@@ -890,13 +890,13 @@ static void _nextTx (void) {
     // No feasible channel  found! Keep old one.
 }
 
-#if !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_BEACONS)
 static void setBcnRxParams (void) {
     LMIC.dataLen = 0;
     LMIC.freq = US915_500kHz_DNFBASE + LMIC.bcnChnl * US915_500kHz_DNFSTEP;
     LMIC.rps  = setIh(setNocrc(dndr2rps((dr_t)DR_BCN),1),LEN_BCN);
 }
-#endif // !DISABLE_BEACONS
+#endif // !LMIC_DISABLE_BEACONS
 
 #define setRx1Params() {                                                \
     LMIC.freq = US915_500kHz_DNFBASE + (LMIC.txChnl & 0x7) * US915_500kHz_DNFSTEP; \
@@ -907,7 +907,7 @@ static void setBcnRxParams (void) {
     LMIC.rps = dndr2rps(LMIC.dndr);                                     \
 }
 
-#if !defined(DISABLE_JOIN)
+#if !defined(LMIC_DISABLE_JOIN)
 static void initJoinLoop (void) {
     LMIC.chRnd = 0;
     LMIC.txChnl = 0;
@@ -946,7 +946,7 @@ static ostime_t nextJoinState (void) {
     // 1 - triggers EV_JOIN_FAILED event
     return failed;
 }
-#endif // !DISABLE_JOIN
+#endif // !LMIC_DISABLE_JOIN
 
 //
 // END: US915 related stuff
@@ -974,9 +974,9 @@ static void reportEvent (ev_t ev) {
 static void runReset (xref2osjob_t osjob) {
     // Disable session
     LMIC_reset();
-#if !defined(DISABLE_JOIN)
+#if !defined(LMIC_DISABLE_JOIN)
     LMIC_startJoining();
-#endif // !DISABLE_JOIN
+#endif // !LMIC_DISABLE_JOIN
     reportEvent(EV_RESET);
 }
 
@@ -984,27 +984,27 @@ static void stateJustJoined (void) {
     LMIC.seqnoDn     = LMIC.seqnoUp = 0;
     LMIC.rejoinCnt   = 0;
     LMIC.dnConf      = LMIC.adrChanged = LMIC.ladrAns = LMIC.devsAns = 0;
-#if !defined(DISABLE_MCMD_SNCH_REQ)
+#if !defined(LMIC_DISABLE_MCMD_SNCH_REQ)
     LMIC.snchAns     = 0;
 #endif
-#if !defined(DISABLE_MCMD_DN2P_SET)
+#if !defined(LMIC_DISABLE_MCMD_DN2P_SET)
     LMIC.dn2Ans      = 0;
 #endif
     LMIC.moreData    = 0;
-#if !defined(DISABLE_MCMD_DCAP_REQ)
+#if !defined(LMIC_DISABLE_MCMD_DCAP_REQ)
     LMIC.dutyCapAns  = 0;
 #endif
-#if !defined(DISABLE_MCMD_PING_SET) && !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_MCMD_PING_SET) && !defined(LMIC_DISABLE_PING)
     LMIC.pingSetAns  = 0;
 #endif
     LMIC.upRepeat    = 0;
     LMIC.adrAckReq   = LINK_CHECK_INIT;
     LMIC.dn2Dr       = DR_DNW2;
     LMIC.dn2Freq     = FREQ_DNW2;
-#if !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_BEACONS)
     LMIC.bcnChnl     = CHNL_BCN;
 #endif
-#if !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_PING)
     LMIC.ping.freq   = FREQ_PING;
     LMIC.ping.dr     = DR_PING;
 #endif
@@ -1015,15 +1015,15 @@ static void stateJustJoined (void) {
 // Decoding frames
 
 
-#if !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_BEACONS)
 // Decode beacon  - do not overwrite bcninfo unless we have a match!
 static int decodeBeacon (void) {
     ASSERT(LMIC.dataLen == LEN_BCN); // implicit header RX guarantees this
     xref2u1_t d = LMIC.frame;
     if(
-#if CFG_eu868
+#if LMIC_EU686
         d[OFF_BCN_CRC1] != (u1_t)os_crc16(d,OFF_BCN_CRC1)
-#elif CFG_us915
+#elif LMIC_US915
         os_rlsbf2(&d[OFF_BCN_CRC1]) != os_crc16(d,OFF_BCN_CRC1)
 #endif
         )
@@ -1051,7 +1051,7 @@ static int decodeBeacon (void) {
     LMIC.bcninfo.flags |= BCN_FULL;
     return 2;
 }
-#endif // !DISABLE_BEACONS
+#endif // !LMIC_DISABLE_BEACONS
 
 
 static bit_t decodeFrame (void) {
@@ -1202,7 +1202,7 @@ static bit_t decodeFrame (void) {
             continue;
         }
         case MCMD_DN2P_SET: {
-#if !defined(DISABLE_MCMD_DN2P_SET)
+#if !defined(LMIC_DISABLE_MCMD_DN2P_SET)
             dr_t dr = (dr_t)(opts[oidx+1] & 0x0F);
             u4_t freq = convFreq(&opts[oidx+2]);
             LMIC.dn2Ans = 0x80;   // answer pending
@@ -1216,12 +1216,12 @@ static bit_t decodeFrame (void) {
                 DO_DEVDB(LMIC.dn2Dr,dn2Dr);
                 DO_DEVDB(LMIC.dn2Freq,dn2Freq);
             }
-#endif // !DISABLE_MCMD_DN2P_SET
+#endif // !LMIC_DISABLE_MCMD_DN2P_SET
             oidx += 5;
             continue;
         }
         case MCMD_DCAP_REQ: {
-#if !defined(DISABLE_MCMD_DCAP_REQ)
+#if !defined(LMIC_DISABLE_MCMD_DCAP_REQ)
             u1_t cap = opts[oidx+1];
             // A value cap=0xFF means device is OFF unless enabled again manually.
             if( cap==0xFF )
@@ -1231,23 +1231,23 @@ static bit_t decodeFrame (void) {
             DO_DEVDB(cap,dutyCap);
             LMIC.dutyCapAns = 1;
             oidx += 2;
-#endif // !DISABLE_MCMD_DCAP_REQ
+#endif // !LMIC_DISABLE_MCMD_DCAP_REQ
             continue;
         }
         case MCMD_SNCH_REQ: {
-#if !defined(DISABLE_MCMD_SNCH_REQ)
+#if !defined(LMIC_DISABLE_MCMD_SNCH_REQ)
             u1_t chidx = opts[oidx+1];  // channel
             u4_t freq  = convFreq(&opts[oidx+2]); // freq
             u1_t drs   = opts[oidx+5];  // datarate span
             LMIC.snchAns = 0x80;
             if( freq != 0 && LMIC_setupChannel(chidx, freq, DR_RANGE_MAP(drs&0xF,drs>>4), -1) )
                 LMIC.snchAns |= MCMD_SNCH_ANS_DRACK|MCMD_SNCH_ANS_FQACK;
-#endif // !DISABLE_MCMD_SNCH_REQ
+#endif // !LMIC_DISABLE_MCMD_SNCH_REQ
             oidx += 6;
             continue;
         }
         case MCMD_PING_SET: {
-#if !defined(DISABLE_MCMD_PING_SET) && !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_MCMD_PING_SET) && !defined(LMIC_DISABLE_PING)
             u4_t freq = convFreq(&opts[oidx+1]);
             u1_t flags = 0x80;
             if( freq != 0 ) {
@@ -1258,12 +1258,12 @@ static bit_t decodeFrame (void) {
                 DO_DEVDB(LMIC.ping.dr, pingDr);
             }
             LMIC.pingSetAns = flags;
-#endif // !DISABLE_MCMD_PING_SET && !DISABLE_PING
+#endif // !LMIC_DISABLE_MCMD_PING_SET && !LMIC_DISABLE_PING
             oidx += 4;
             continue;
         }
         case MCMD_BCNI_ANS: {
-#if !defined(DISABLE_MCMD_BCNI_ANS) && !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_MCMD_BCNI_ANS) && !defined(LMIC_DISABLE_BEACONS)
             // Ignore if tracking already enabled
             if( (LMIC.opmode & OP_TRACK) == 0 ) {
                 LMIC.bcnChnl = opts[oidx+3];
@@ -1287,7 +1287,7 @@ static bit_t decodeFrame (void) {
                                                                - LMIC.bcnRxtime) << 8)),
                                      e_.time    = MAIN::CDEV->ostime2ustime(LMIC.bcninfo.txtime + BCN_INTV_osticks)));
             }
-#endif // !DISABLE_MCMD_BCNI_ANS && !DISABLE_BEACONS
+#endif // !LMIC_DISABLE_MCMD_BCNI_ANS && !LMIC_DISABLE_BEACONS
             oidx += 4;
             continue;
         }
@@ -1417,19 +1417,19 @@ static void setupRx1 (osjobcb_t func) {
 
 // Called by HAL once TX complete and delivers exact end of TX time stamp in LMIC.rxtime
 static void txDone (ostime_t delay, osjobcb_t func) {
-#if !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_PING)
     if( (LMIC.opmode & (OP_TRACK|OP_PINGABLE|OP_PINGINI)) == (OP_TRACK|OP_PINGABLE) ) {
         rxschedInit(&LMIC.ping);    // note: reuses LMIC.frame buffer!
         LMIC.opmode |= OP_PINGINI;
     }
-#endif // !DISABLE_PING
+#endif // !LMIC_DISABLE_PING
 
     // Change RX frequency / rps (US only) before we increment txChnl
     setRx1Params();
     // LMIC.rxsyms carries the TX datarate (can be != LMIC.datarate [confirm retries etc.])
     // Setup receive - LMIC.rxtime is preloaded with 1.5 symbols offset to tune
     // into the middle of the 8 symbols preamble.
-#if defined(CFG_eu868)
+#if defined(LMIC_EU686)
     if( /* TX datarate */LMIC.rxsyms == DR_FSK ) {
         LMIC.rxtime = LMIC.txend + delay - PRERX_FSK*us2osticksRound(160);
         LMIC.rxsyms = RXLEN_FSK;
@@ -1446,7 +1446,7 @@ static void txDone (ostime_t delay, osjobcb_t func) {
 // ======================================== Join frames
 
 
-#if !defined(DISABLE_JOIN)
+#if !defined(LMIC_DISABLE_JOIN)
 static void onJoinFailed (xref2osjob_t osjob) {
     // Notify app - must call LMIC_reset() to stop joining
     // otherwise join procedure continues.
@@ -1509,11 +1509,11 @@ static bit_t processJoinAccept (void) {
     LMIC.devaddr = addr;
     LMIC.netid = os_rlsbf4(&LMIC.frame[OFF_JA_NETID]) & 0xFFFFFF;
 
-#if defined(CFG_eu868)
+#if defined(LMIC_EU686)
     initDefaultChannels(0);
 #endif
     if( dlen > LEN_JA ) {
-#if defined(CFG_us915)
+#if defined(LMIC_US915)
         goto badframe;
 #endif
         dlen = OFF_CFLIST;
@@ -1589,7 +1589,7 @@ static void jreqDone (xref2osjob_t osjob) {
     txDone(DELAY_JACC1_osticks, FUNC_ADDR(setupRx1Jacc));
 }
 
-#endif // !DISABLE_JOIN
+#endif // !LMIC_DISABLE_JOIN
 
 // ======================================== Data frames
 
@@ -1641,29 +1641,29 @@ static void buildDataFrame (void) {
     // Piggyback MAC options
     // Prioritize by importance
     int  end = OFF_DAT_OPTS;
-#if !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_PING)
     if( (LMIC.opmode & (OP_TRACK|OP_PINGABLE)) == (OP_TRACK|OP_PINGABLE) ) {
         // Indicate pingability in every UP frame
         LMIC.frame[end] = MCMD_PING_IND;
         LMIC.frame[end+1] = LMIC.ping.dr | (LMIC.ping.intvExp<<4);
         end += 2;
     }
-#endif // !DISABLE_PING
-#if !defined(DISABLE_MCMD_DCAP_REQ)
+#endif // !LMIC_DISABLE_PING
+#if !defined(LMIC_DISABLE_MCMD_DCAP_REQ)
     if( LMIC.dutyCapAns ) {
         LMIC.frame[end] = MCMD_DCAP_ANS;
         end += 1;
         LMIC.dutyCapAns = 0;
     }
-#endif // !DISABLE_MCMD_DCAP_REQ
-#if !defined(DISABLE_MCMD_DN2P_SET)
+#endif // !LMIC_DISABLE_MCMD_DCAP_REQ
+#if !defined(LMIC_DISABLE_MCMD_DN2P_SET)
     if( LMIC.dn2Ans ) {
         LMIC.frame[end+0] = MCMD_DN2P_ANS;
         LMIC.frame[end+1] = LMIC.dn2Ans & ~MCMD_DN2P_ANS_RFU;
         end += 2;
         LMIC.dn2Ans = 0;
     }
-#endif // !DISABLE_MCMD_DN2P_SET
+#endif // !LMIC_DISABLE_MCMD_DN2P_SET
     if( LMIC.devsAns ) {  // answer to device status
         LMIC.frame[end+0] = MCMD_DEVS_ANS;
         LMIC.frame[end+1] = os_getBattLevel();
@@ -1677,33 +1677,33 @@ static void buildDataFrame (void) {
         end += 2;
         LMIC.ladrAns = 0;
     }
-#if !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_BEACONS)
     if( LMIC.bcninfoTries > 0 ) {
         LMIC.frame[end] = MCMD_BCNI_REQ;
         end += 1;
     }
-#endif // !DISABLE_BEACONS
+#endif // !LMIC_DISABLE_BEACONS
     if( LMIC.adrChanged ) {
         if( LMIC.adrAckReq < 0 )
             LMIC.adrAckReq = 0;
         LMIC.adrChanged = 0;
     }
-#if !defined(DISABLE_MCMD_PING_SET) && !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_MCMD_PING_SET) && !defined(LMIC_DISABLE_PING)
     if( LMIC.pingSetAns != 0 ) {
         LMIC.frame[end+0] = MCMD_PING_ANS;
         LMIC.frame[end+1] = LMIC.pingSetAns & ~MCMD_PING_ANS_RFU;
         end += 2;
         LMIC.pingSetAns = 0;
     }
-#endif // !DISABLE_MCMD_PING_SET && !DISABLE_PING
-#if !defined(DISABLE_MCMD_SNCH_REQ)
+#endif // !LMIC_DISABLE_MCMD_PING_SET && !LMIC_DISABLE_PING
+#if !defined(LMIC_DISABLE_MCMD_SNCH_REQ)
     if( LMIC.snchAns ) {
         LMIC.frame[end+0] = MCMD_SNCH_ANS;
         LMIC.frame[end+1] = LMIC.snchAns & ~MCMD_SNCH_ANS_RFU;
         end += 2;
         LMIC.snchAns = 0;
     }
-#endif // !DISABLE_MCMD_SNCH_REQ
+#endif // !LMIC_DISABLE_MCMD_SNCH_REQ
     ASSERT(end <= OFF_DAT_OPTS+16);
 
     u1_t flen = end + (txdata ? 5+dlen : 4);
@@ -1763,7 +1763,7 @@ static void buildDataFrame (void) {
 }
 
 
-#if !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_BEACONS)
 // Callback from HAL during scan mode or when job timer expires.
 static void onBcnRx (xref2osjob_t job) {
     // If we arrive via job timer make sure to put radio to rest.
@@ -1827,7 +1827,7 @@ void LMIC_disableTracking (void) {
     LMIC.bcninfoTries = 0;
     engineUpdate();
 }
-#endif // !DISABLE_BEACONS
+#endif // !LMIC_DISABLE_BEACONS
 
 
 
@@ -1861,7 +1861,7 @@ void LMIC_disableTracking (void) {
 //
 // ================================================================================
 
-#if !defined(DISABLE_JOIN)
+#if !defined(LMIC_DISABLE_JOIN)
 static void buildJoinRequest (u1_t ftype) {
     // Do not use pendTxData since we might have a pending
     // user level frame in there. Use RX holding area instead.
@@ -1908,7 +1908,7 @@ bit_t LMIC_startJoining (void) {
     }
     return 0; // already joined
 }
-#endif // !DISABLE_JOIN
+#endif // !LMIC_DISABLE_JOIN
 
 
 // ================================================================================
@@ -1917,7 +1917,7 @@ bit_t LMIC_startJoining (void) {
 //
 // ================================================================================
 
-#if !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_PING)
 static void processPingRx (xref2osjob_t osjob) {
     if( LMIC.dataLen != 0 ) {
         LMIC.txrxFlags = TXRX_PING;
@@ -1929,7 +1929,7 @@ static void processPingRx (xref2osjob_t osjob) {
     // Pick next ping slot
     engineUpdate();
 }
-#endif // !DISABLE_PING
+#endif // !LMIC_DISABLE_PING
 
 
 static bit_t processDnData (void) {
@@ -1975,7 +1975,7 @@ static bit_t processDnData (void) {
             LMIC.opmode |= OP_REJOIN|OP_LINKDEAD;
             reportEvent(EV_LINK_DEAD);
         }
-#if !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_BEACONS)
         // If this falls to zero the NWK did not answer our MCMD_BCNI_REQ commands - try full scan
         if( LMIC.bcninfoTries > 0 ) {
             if( (LMIC.opmode & OP_TRACK) != 0 ) {
@@ -1986,7 +1986,7 @@ static bit_t processDnData (void) {
                 startScan();   // NWK did not answer - try scan
             }
         }
-#endif // !DISABLE_BEACONS
+#endif // !LMIC_DISABLE_BEACONS
         return 1;
     }
     if( !decodeFrame() ) {
@@ -1998,7 +1998,7 @@ static bit_t processDnData (void) {
 }
 
 
-#if !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_BEACONS)
 static void processBeacon (xref2osjob_t osjob) {
     ostime_t lasttx = LMIC.bcninfo.txtime;   // save here - decodeBeacon might overwrite
     u1_t flags = LMIC.bcninfo.flags;
@@ -2051,13 +2051,13 @@ static void processBeacon (xref2osjob_t osjob) {
     LMIC.bcnRxtime = LMIC.bcninfo.txtime + BCN_INTV_osticks - calcRxWindow(0,DR_BCN);
     LMIC.bcnRxsyms = LMIC.rxsyms;
   rev:
-#if CFG_us915
+#if LMIC_US915
     LMIC.bcnChnl = (LMIC.bcnChnl+1) & 7;
 #endif
-#if !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_PING)
     if( (LMIC.opmode & OP_PINGINI) != 0 )
         rxschedInit(&LMIC.ping);  // note: reuses LMIC.frame buffer!
-#endif // !DISABLE_PING
+#endif // !LMIC_DISABLE_PING
     reportEvent(ev);
 }
 
@@ -2066,15 +2066,15 @@ static void startRxBcn (xref2osjob_t osjob) {
     LMIC.osjob.func = FUNC_ADDR(processBeacon);
     os_radio(RADIO_RX);
 }
-#endif // !DISABLE_BEACONS
+#endif // !LMIC_DISABLE_BEACONS
 
 
-#if !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_PING)
 static void startRxPing (xref2osjob_t osjob) {
     LMIC.osjob.func = FUNC_ADDR(processPingRx);
     os_radio(RADIO_RX);
 }
-#endif // !DISABLE_PING
+#endif // !LMIC_DISABLE_PING
 
 
 // Decide what to do next for the MAC layer of a device
@@ -2086,24 +2086,24 @@ static void engineUpdate (void) {
     if( (LMIC.opmode & (OP_SCAN|OP_TXRXPEND|OP_SHUTDOWN)) != 0 )
         return;
 
-#if !defined(DISABLE_JOIN)
+#if !defined(LMIC_DISABLE_JOIN)
     if( LMIC.devaddr == 0 && (LMIC.opmode & OP_JOINING) == 0 ) {
         LMIC_startJoining();
         return;
     }
-#endif // !DISABLE_JOIN
+#endif // !LMIC_DISABLE_JOIN
 
     ostime_t now    = os_getTime();
     ostime_t rxtime = 0;
     ostime_t txbeg  = 0;
 
-#if !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_BEACONS)
     if( (LMIC.opmode & OP_TRACK) != 0 ) {
         // We are tracking a beacon
         ASSERT( now + RX_RAMPUP - LMIC.bcnRxtime <= 0 );
         rxtime = LMIC.bcnRxtime - RX_RAMPUP;
     }
-#endif // !DISABLE_BEACONS
+#endif // !LMIC_DISABLE_BEACONS
 
     if( (LMIC.opmode & (OP_JOINING|OP_REJOIN|OP_TXDATA|OP_POLL)) != 0 ) {
         // Need to TX some data...
@@ -2135,7 +2135,7 @@ static void engineUpdate (void) {
                 lmic_printf("%lu: Airtime available at %lu (global duty limit)\n", os_getTime(), txbeg);
             #endif
         }
-#if !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_BEACONS)
         // If we're tracking a beacon...
         // then make sure TX-RX transaction is complete before beacon
         if( (LMIC.opmode & OP_TRACK) != 0 &&
@@ -2151,7 +2151,7 @@ static void engineUpdate (void) {
             txbeg = 0;
             goto checkrx;
         }
-#endif // !DISABLE_BEACONS
+#endif // !LMIC_DISABLE_BEACONS
         // Earliest possible time vs overhead to setup radio
         if( txbeg - (now + TX_RAMPUP) < 0 ) {
             #if LMIC_DEBUG_LEVEL > 1
@@ -2160,7 +2160,7 @@ static void engineUpdate (void) {
             // We could send right now!
         txbeg = now;
             dr_t txdr = (dr_t)LMIC.datarate;
-#if !defined(DISABLE_JOIN)
+#if !defined(LMIC_DISABLE_JOIN)
             if( jacc ) {
                 u1_t ftype;
                 if( (LMIC.opmode & OP_REJOIN) != 0 ) {
@@ -2172,7 +2172,7 @@ static void engineUpdate (void) {
                 buildJoinRequest(ftype);
                 LMIC.osjob.func = FUNC_ADDR(jreqDone);
             } else
-#endif // !DISABLE_JOIN
+#endif // !LMIC_DISABLE_JOIN
             {
                 if( LMIC.seqnoDn >= 0xFFFFFF80 ) {
                     // Imminent roll over - proactively reset MAC
@@ -2221,10 +2221,10 @@ static void engineUpdate (void) {
             return;
     }
 
-#if !defined(DISABLE_BEACONS)
+#if !defined(LMIC_DISABLE_BEACONS)
     // Are we pingable?
   checkrx:
-#if !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_PING)
     if( (LMIC.opmode & OP_PINGINI) != 0 ) {
         // One more RX slot in this beacon period?
         if( rxschedNext(&LMIC.ping, now+RX_RAMPUP) ) {
@@ -2241,7 +2241,7 @@ static void engineUpdate (void) {
         }
         // no - just wait for the beacon
     }
-#endif // !DISABLE_PING
+#endif // !LMIC_DISABLE_PING
 
     if( txbeg != 0  &&  (txbeg - rxtime) < 0 )
         goto txdelay;
@@ -2256,7 +2256,7 @@ static void engineUpdate (void) {
     }
     os_setTimedCallback(&LMIC.osjob, rxtime, FUNC_ADDR(startRxBcn));
     return;
-#endif // !DISABLE_BEACONS
+#endif // !LMIC_DISABLE_BEACONS
 
   txdelay:
     EV(devCond, INFO, (e_.reason = EV::devCond_t::TX_DELAY,
@@ -2301,23 +2301,23 @@ void LMIC_reset (void) {
     LMIC.dn2Dr        =  DR_DNW2;   // we need this for 2nd DN window of join accept
     LMIC.dn2Freq      =  FREQ_DNW2; // ditto
     LMIC.rxDelay      =  DELAY_DNW1;
-#if !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_PING)
     LMIC.ping.freq    =  FREQ_PING; // defaults for ping
     LMIC.ping.dr      =  DR_PING;   // ditto
     LMIC.ping.intvExp =  0xFF;
-#endif // !DISABLE_PING
-#if defined(CFG_us915)
+#endif // !LMIC_DISABLE_PING
+#if defined(LMIC_US915)
     initDefaultChannels();
 #endif
     DO_DEVDB(LMIC.devaddr,      devaddr);
     DO_DEVDB(LMIC.devNonce,     devNonce);
     DO_DEVDB(LMIC.dn2Dr,        dn2Dr);
     DO_DEVDB(LMIC.dn2Freq,      dn2Freq);
-#if !defined(DISABLE_PING)
+#if !defined(LMIC_DISABLE_PING)
     DO_DEVDB(LMIC.ping.freq,    pingFreq);
     DO_DEVDB(LMIC.ping.dr,      pingDr);
     DO_DEVDB(LMIC.ping.intvExp, pingIntvExp);
-#endif // !DISABLE_PING
+#endif // !LMIC_DISABLE_PING
 }
 
 
@@ -2394,7 +2394,7 @@ void LMIC_setSession (u4_t netid, devaddr_t devaddr, xref2u1_t nwkKey, xref2u1_t
     if( artKey != (xref2u1_t)0 )
         os_copyMem(LMIC.artKey, artKey, 16);
 
-#if defined(CFG_eu868)
+#if defined(LMIC_EU686)
     initDefaultChannels(0);
 #endif
 
