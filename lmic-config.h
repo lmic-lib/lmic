@@ -19,7 +19,9 @@
 // RF settings used during transmission and reception. Set to 2 to
 // enable more verbose output. Make sure that printf is actually
 // configured (e.g. on AVR it is not by default), otherwise using it can
-// cause crashing.
+// cause crashing. On the Arduino target, printf automatically gets
+// enabled when LMIC_DEBUG_LEVEL is > 0, see its target-config.h for
+// details.
 #define LMIC_DEBUG_LEVEL 0
 
 // Uncomment this to disable all code related to joining
