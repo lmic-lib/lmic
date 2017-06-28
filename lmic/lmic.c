@@ -461,7 +461,7 @@ static void rxschedInit (rxsched_t *rxsched) {
 
 static bool rxschedNext (rxsched_t *rxsched, ostime_t cando) {
   again:
-    if( rxsched->rxtime - cando >= 0 )
+    if( (ostimediff_t)(rxsched->rxtime - cando) >= 0 )
         return 1;
     uint8_t slot;
     if( (slot=rxsched->slot) >= 128 )
@@ -491,7 +491,7 @@ static ostime_t rndDelay (uint8_t secSpan) {
 
 static void txDelay (ostime_t reftime, uint8_t secSpan) {
     reftime += rndDelay(secSpan);
-    if( LMIC.globalDutyRate == 0  ||  (reftime - LMIC.globalDutyAvail) > 0 ) {
+    if( LMIC.globalDutyRate == 0  ||  (ostimediff_t)(reftime - LMIC.globalDutyAvail) > 0 ) {
         LMIC.globalDutyAvail = reftime;
         LMIC.opmode |= OP_RNDTX;
     }
@@ -741,7 +741,7 @@ static ostime_t nextJoinState (void) {
     // Move txend to randomize synchronized concurrent joins.
     // Duty cycle is based on txend.
     ostime_t time = os_getTime();
-    if( time - LMIC.bands[BAND_MILLI].avail < 0 )
+    if( (ostimediff_t)(time - LMIC.bands[BAND_MILLI].avail) < 0 )
         time = LMIC.bands[BAND_MILLI].avail;
     LMIC.txend = time +
         (isTESTMODE()
@@ -2129,7 +2129,7 @@ static void engineUpdate (void) {
             #endif
         }
         // Delayed TX or waiting for duty cycle?
-        if( (LMIC.globalDutyRate != 0 || (LMIC.opmode & OP_RNDTX) != 0)  &&  (txbeg - LMIC.globalDutyAvail) < 0 ) {
+        if( (LMIC.globalDutyRate != 0 || (LMIC.opmode & OP_RNDTX) != 0)  &&  (ostimediff_t)(txbeg - LMIC.globalDutyAvail) < 0 ) {
             txbeg = LMIC.globalDutyAvail;
             #if LMIC_DEBUG_LEVEL > 1
                 lmic_printf("%lu: Airtime available at %lu (global duty limit)\n", os_getTime(), txbeg);
@@ -2139,7 +2139,7 @@ static void engineUpdate (void) {
         // If we're tracking a beacon...
         // then make sure TX-RX transaction is complete before beacon
         if( (LMIC.opmode & OP_TRACK) != 0 &&
-            txbeg + (jacc ? JOIN_GUARD_osticks : TXRX_GUARD_osticks) - rxtime > 0 ) {
+            (ostimediff_t)(txbeg + (jacc ? JOIN_GUARD_osticks : TXRX_GUARD_osticks) - rxtime) > 0 ) {
 
             #if LMIC_DEBUG_LEVEL > 1
                 lmic_printf("%lu: Awaiting beacon before uplink\n", os_getTime());
@@ -2153,7 +2153,7 @@ static void engineUpdate (void) {
         }
 #endif // !LMIC_DISABLE_BEACONS
         // Earliest possible time vs overhead to setup radio
-        if( txbeg - (now + TX_RAMPUP) < 0 ) {
+        if( (ostimediff_t)(txbeg - (now + TX_RAMPUP)) < 0 ) {
             #if LMIC_DEBUG_LEVEL > 1
                 lmic_printf("%lu: Ready for uplink\n", os_getTime());
             #endif
