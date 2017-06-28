@@ -9,8 +9,11 @@
 
 // Enable this to allow using printf() to print to the given serial port
 // (or any other Print object). This can be easy for debugging. The
-// current implementation only works on AVR, though.
-//#define LMIC_PRINTF_TO Serial
+// current implementation only works on AVR, though. Enable this by
+// default when a debug level is set, to prevent random crashing.
+#if LMIC_DEBUG_LEVEL > 0
+#define LMIC_PRINTF_TO Serial
+#endif
 
 // Any runtime assertion failures are printed to this serial port (or
 // any other Print object). If this is unset, any failures just silently
