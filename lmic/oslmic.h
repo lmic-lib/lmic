@@ -34,6 +34,7 @@
 // You should not, however, change the lmic.[hc]
 
 #include <stdint.h>
+#include "../lmic-config.h"
 #ifdef ARDUINO
 // When using the makefile, the target directory is put into the include
 // path, so we can include target-config.h directly. When using Arduino,
