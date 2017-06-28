@@ -2158,7 +2158,7 @@ static void engineUpdate (void) {
                 lmic_printf("%lu: Ready for uplink\n", os_getTime());
             #endif
             // We could send right now!
-        txbeg = now;
+            txbeg = now;
             dr_t txdr = (dr_t)LMIC.datarate;
 #if !defined(LMIC_DISABLE_JOIN)
             if( jacc ) {
