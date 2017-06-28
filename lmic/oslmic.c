@@ -64,6 +64,8 @@ void os_clearCallback (osjob_t* job) {
     #if LMIC_DEBUG_LEVEL > 1
         if (res)
             lmic_printf("%lu: Cleared job %p\n", os_getTime(), job);
+    #else
+        (void)res; // Prevent unused variable warning
     #endif
 }
 
@@ -119,15 +121,15 @@ void os_runloop () {
 
 void os_runloop_once() {
     osjob_t* j = NULL;
+    ostime_t deadline = 0;
     hal_disableIRQs();
-    bit_t is_runnable = 0;
     // check for runnable jobs
     if(OS.runnablejobs) {
         j = OS.runnablejobs;
         OS.runnablejobs = j->next;
-        is_runnable = 1;
     } else if(OS.scheduledjobs && hal_checkTimer(OS.scheduledjobs->deadline)) { // check for expired timed jobs
         j = OS.scheduledjobs;
+        deadline = j->deadline;
         OS.scheduledjobs = j->next;
     } else { // nothing pending
         hal_sleep(); // wake by irq (timer already restarted)
@@ -135,7 +137,9 @@ void os_runloop_once() {
     hal_enableIRQs();
     if(j) { // run job callback
         #if LMIC_DEBUG_LEVEL > 1
-            lmic_printf("%lu: Running job %p, cb %p, deadline %lu\n", os_getTime(), j, j->func, is_runnable ? 0 : j->deadline);
+            lmic_printf("%lu: Running job %p, cb %p, deadline %lu\n", os_getTime(), j, j->func, deadline);
+        #else
+            (void)deadline; // Prevent unused variable warning
         #endif
         j->func(j);
     }
