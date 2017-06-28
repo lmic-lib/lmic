@@ -59,7 +59,6 @@ typedef int16_t            s2_t;
 typedef uint32_t           u4_t;
 typedef int32_t            s4_t;
 typedef unsigned int       uint;
-typedef const char* str_t;
 
 #include <string.h>
 #include "hal.h"
