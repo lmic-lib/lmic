@@ -27,7 +27,7 @@
 
 #include "../lmic/oslmic.h"
 
-#if defined(USE_ORIGINAL_AES)
+#if defined(LMIC_USE_ORIGINAL_AES)
 
 #define AES_MICSUB 0x30 // internal use only
 

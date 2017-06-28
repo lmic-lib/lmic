@@ -16,8 +16,8 @@
 #include <hal/hal.h>
 #include <SPI.h>
 
-#if !defined(DISABLE_INVERT_IQ_ON_RX)
-#error This example requires DISABLE_INVERT_IQ_ON_RX to be set. Update \
+#if !defined(LMIC_DISABLE_INVERT_IQ_ON_RX)
+#error This example requires LMIC_DISABLE_INVERT_IQ_ON_RX to be set. Update \
        config.h in the lmic library to set it.
 #endif
 
@@ -40,7 +40,7 @@ const lmic_pinmap lmic_pins = {
 
 // These callbacks are only used in over-the-air activation, so they are
 // left empty here (we cannot leave them out completely unless
-// DISABLE_JOIN is set in config.h, otherwise the linker will complain).
+// LMIC_DISABLE_JOIN is set in config.h, otherwise the linker will complain).
 void os_getArtEui (u1_t* buf) { }
 void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
@@ -133,10 +133,10 @@ void setup() {
 
   // Set up these settings once, and use them for both TX and RX
 
-#if defined(CFG_eu868)
+#if defined(LMIC_EU686)
   // Use a frequency in the g3 which allows 10% duty cycling.
   LMIC.freq = 869525000;
-#elif defined(CFG_us915)
+#elif defined(LMIC_US915)
   LMIC.freq = 902300000;
 #endif
 

@@ -38,7 +38,7 @@ CCOPTS += -I$(CMSIS_INC)
 ASOPTS += -I$(CMSIS_INC)
 
 # LMIC CONFIG
-LMICCFG += -DSTM32L1XX_MD -DCFG_DEBUG -DCFG_eu868 -DCFG_wimod_board -DCFG_sx1272_radio -DCFG_lmic_clib
+LMICCFG += -DSTM32L1XX_MD -DCFG_DEBUG -DLMIC_EU686 -DCFG_wimod_board -DLMIC_SX1272 -DCFG_lmic_clib
 
 # RULES
 SRCS = $(notdir $(wildcard ${LMICDIR}/*.c ${TARGETDIR}/*.c ${TARGETDIR}/*.s *.c))

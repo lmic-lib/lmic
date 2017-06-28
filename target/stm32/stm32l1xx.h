@@ -16,7 +16,7 @@
   *              - To use or not the peripheral’s drivers in application code(i.e.
   *                code will be based on direct access to peripheral’s registers
   *                rather than drivers API), this option is controlled by
-  *                "#define USE_STDPERIPH_DRIVER"
+  *                "#define LMIC_USE_STDPERIPH_DRIVER"
   *              - To change few application-specific parameters such as the HSE
   *                crystal frequency
   *           - Data structures and the address mapping for all peripherals
@@ -90,13 +90,13 @@
  #error "Please select first the target STM32L1xx device used in your application (in stm32l1xx.h file)"
 #endif
 
-#if !defined  USE_STDPERIPH_DRIVER
+#if !defined  LMIC_USE_STDPERIPH_DRIVER
 /**
  * @brief Comment the line below if you will not use the peripherals drivers.
    In this case, these drivers will not be included and the application code will
    be based on direct access to peripherals registers
    */
-  /*#define USE_STDPERIPH_DRIVER*/
+  /*#define LMIC_USE_STDPERIPH_DRIVER*/
 #endif
 
 /**
@@ -6634,7 +6634,7 @@ typedef struct
   * @}
   */
 
-#ifdef USE_STDPERIPH_DRIVER
+#ifdef LMIC_USE_STDPERIPH_DRIVER
   #include "stm32l1xx_conf.h"
 #endif
 
