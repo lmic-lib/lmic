@@ -1,6 +1,5 @@
 LMIC VERSION 1.6  (13-July-2015)
 ---------------------------------
-
  - License changed to BSD
  - Modem included, see LMiC-Modem.pdf and examples/modem
  - Additional stm32 hardware and Blipper board specific peripheral code
@@ -8,26 +7,30 @@ LMIC VERSION 1.6  (13-July-2015)
 
 LMIC VERSION 1.5  (8-May-2015)
 ------------------------------
-
  - fixed condition in convFreq()
-
  - fixed `freq*100` bug and `freq==0` bug for CFList
-
  - fixed TX scheduling bug
-
  - better support for GNU compiler toolchain
-
 
 LMIC VERSION 1.4  (17-Mar-2015)
 -------------------------------
-
  - changed API: inverted port indicator flag in `LMIC.txrxFlags`
    (now `TXRX_PORT`, previously `TXRX_NOPORT`)
-
  - fixed offset `OFF_CFLIST` constant
-
  - changed CRC-16 algorithm for beacons to CCITT(XMODEM) polynomial
-
  - fixed radio driver (low data rate optimization for SF11+SF12 only for BW125)
-
  - fixed timer rollover handling in job queue
+
+LMIC VERSION 1.2  (Feb-2015)
+-------------------------------
+ - Added APIs ``LMIC_setupBand(), LMIC_setupChannel(), LMIC_disableChannel(), LMIC_setLinkCheckMode()``.
+ - Minor internal fixes.
+
+LMIC VERSION 1.1  (Jan-2015)
+-------------------------------
+ - Added API ``LMIC_setSession()``.
+ - Minor internal fixes.
+
+LMIC VERSION 1.0  (Nov-2014)
+-------------------------------
+ - Initial version.
