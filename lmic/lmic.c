@@ -667,7 +667,7 @@ static ostime_t nextTx (ostime_t now) {
         ostime_t mintime = now + /*8h*/sec2osticks(28800);
         uint8_t band=0;
         for( uint8_t bi=0; bi<4; bi++ ) {
-            if( (bmap & (1<<bi)) && mintime - LMIC.bands[bi].avail > 0 ) {
+            if( (bmap & (1<<bi)) && (ostimediff_t)(mintime - LMIC.bands[bi].avail) > 0 ) {
                 #if LMIC_DEBUG_LEVEL > 1
                     lmic_printf("%lu: Considering band %d, which is available at %lu\n", os_getTime(), bi, LMIC.bands[bi].avail);
                 #endif
